@@ -9,6 +9,9 @@
 			<trans-unit id="sys_file_metadata.right_of_use">
 				<source>Usage rights</source>
 			</trans-unit>
+			<trans-unit id="sys_file_metadata.right_of_use.notSet">
+				<source>Usage rights not set</source>
+			</trans-unit>
 			<trans-unit id="sys_file_metadata.right_of_use.full">
 				<source>Full usage rights</source>
 			</trans-unit>

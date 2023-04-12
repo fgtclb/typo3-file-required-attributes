@@ -10,6 +10,10 @@
 				<source>Usage rights</source>
 				<target>Nutzungsrechte</target>
 			</trans-unit>
+			<trans-unit id="sys_file_metadata.right_of_use.notSet">
+				<source>Usage rights not set</source>
+				<target>Nutzungsrechte nicht gesetzt</target>
+			</trans-unit>
 			<trans-unit id="sys_file_metadata.right_of_use.full">
 				<source>Full usage rights</source>
 				<target>Uneingeschränkte Nutzungsrechte</target>
