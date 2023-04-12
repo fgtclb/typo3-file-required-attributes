@@ -13,12 +13,12 @@ $EM_CONF[$_EXTKEY] = [
     ],
     'autoload' => [
         'psr-4' => [
-            'FGTCLB\\FileRequiredAttributes\\' => 'Classes/'
+            'FGTCLB\\FileRequiredAttributes\\' => 'Classes/',
         ],
     ],
     'autoload-dev' => [
         'psr-4' => [
-            'FGTCLB\\FileRequiredAttributes\\Tests\\' => 'Tests/'
+            'FGTCLB\\FileRequiredAttributes\\Tests\\' => 'Tests/',
         ],
     ],
 ];

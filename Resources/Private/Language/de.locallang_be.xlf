@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" target-language="de" datatype="plaintext"
+		  original="messages" date="2023-04-12T14:29:56Z">
+		<header>
+			<generator>PhpStorm</generator>
+		</header>
+		<body>
+			<trans-unit id="sys_file_metadata.right_of_use">
+				<source>Usage rights</source>
+				<target>Nutzungsrechte</target>
+			</trans-unit>
+			<trans-unit id="sys_file_metadata.right_of_use.full">
+				<source>Full usage rights</source>
+				<target>Uneingeschränkte Nutzungsrechte</target>
+			</trans-unit>
+			<trans-unit id="sys_file_metadata.right_of_use.limited">
+				<source>Limited usage rights</source>
+				<target>Eingeschränkte Nutzungsrechte</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
