@@ -1,0 +1,32 @@
+{
+    "name": "fgtclb/file-required-attributes",
+    "description": "Marks metadata fields required and disables fire references if required fields are missing",
+    "type": "typo3-cms-extension",
+    "license": [
+        "proprietary"
+    ],
+    "author": [
+        {
+            "name": "Web-Vision",
+            "email": "hello@web-vision.de"
+        }
+    ],
+    "require": {
+        "typo3/cms-core": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "FGTCLB\\FileRequiredAttributes\\": "Classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FGTCLB\\FileRequiredAttributes\\Tests\\": "Tests/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "file_required_attributes"
+        }
+    }
+}
