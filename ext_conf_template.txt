@@ -1,0 +1,2 @@
+# cat=sys_file_metadata;type=user[FGTCLB\FileRequiredAttributes\Backend\Configuration\ExtensionConfiguration->render]; label=Test
+requiredColumns =
