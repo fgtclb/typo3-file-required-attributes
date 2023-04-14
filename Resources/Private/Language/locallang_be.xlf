@@ -18,6 +18,16 @@
 			<trans-unit id="sys_file_metadata.right_of_use.limited">
 				<source>Limited usage rights</source>
 			</trans-unit>
+
+			<trans-unit id="sys_file_reference.copyright.description">
+				<source>WARNING: Changing this field has behaviour to all related files, as the copyright is set global!</source>
+			</trans-unit>
+			<trans-unit id="sys_file_reference.copyright.notSet.header">
+				<source>No Copyright set!</source>
+			</trans-unit>
+			<trans-unit id="sys_file_reference.copyright.notSet.body">
+				<source>You have no copyright set for file "%s". The file was disabled. Set a copyright and then enable the file.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

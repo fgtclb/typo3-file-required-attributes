@@ -22,6 +22,19 @@
 				<source>Limited usage rights</source>
 				<target>Eingeschränkte Nutzungsrechte</target>
 			</trans-unit>
+			<trans-unit id="sys_file_reference.copyright.description">
+				<source>WARNING: Changing this field has behaviour to all related files, as the copyright is set global!</source>
+				<target>WARNUNG: Wird dieses Feld angepasst, ändert sich das Copyright für das Bild und für alle Einbindungen!</target>
+			</trans-unit>
+
+			<trans-unit id="sys_file_reference.copyright.notSet.header">
+				<source>No Copyright set!</source>
+				<target>Kein Copyright!</target>
+			</trans-unit>
+			<trans-unit id="sys_file_reference.copyright.notSet.body">
+				<source>You have no copyright set for file "%s". The file was disabled. Set a copyright and then enable the file.</source>
+				<target>Es existiert kein Copyright für die Datei "%s". Die Datei wurde deaktiviert. Setzen Sie ein Copyright, um die Datei aktivieren zu können.</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

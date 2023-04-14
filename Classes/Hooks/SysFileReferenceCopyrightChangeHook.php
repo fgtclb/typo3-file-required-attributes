@@ -81,14 +81,14 @@ class SysFileReferenceCopyrightChangeHook
                     $message = GeneralUtility::makeInstance(
                         FlashMessage::class,
                         LocalizationUtility::translate(
-                            'LLL:EXT:site/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.body',
+                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.body',
                             null,
                             [
                                 $sysFile['name'],
                             ]
                         ),
                         LocalizationUtility::translate(
-                            'LLL:EXT:site/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.header'
+                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.header'
                         ),
                         FlashMessage::WARNING,
                         true
