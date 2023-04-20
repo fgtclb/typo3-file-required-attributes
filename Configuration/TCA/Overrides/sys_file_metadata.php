@@ -33,5 +33,4 @@
         '',
         'after:description'
     );
-    // Do the magic here
 })();

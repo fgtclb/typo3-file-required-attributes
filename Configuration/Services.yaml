@@ -6,3 +6,9 @@ services:
 
   FGTCLB\FileRequiredAttributes\:
     resource: '../Classes/*'
+
+  FGTCLB\FileRequiredAttributes\EventListener\TcaLoadedEvent:
+    tags:
+      - name: event.listener
+        identifier: 'FileRequiredColumnsListener'
+        event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent

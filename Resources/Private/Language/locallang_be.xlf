@@ -28,6 +28,9 @@
 			<trans-unit id="sys_file_reference.copyright.notSet.body">
 				<source>You have no copyright set for file "%s". The file was disabled. Set a copyright and then enable the file.</source>
 			</trans-unit>
+			<trans-unit id="sys_file_reference.global.description">
+				<source>WARNING: Changing this field has behaviour to all related files, as the field is set global!</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
