@@ -42,7 +42,7 @@ class TcaLoadedEvent
                     if (!str_contains($eval, 'required')) {
                         $evaluations = GeneralUtility::trimExplode(',', $eval);
                         $evaluations[] = 'required';
-                        $evaluations = array_filter($evaluations, fn($value) => $value !== '');
+                        $evaluations = array_filter($evaluations, fn ($value) => $value !== '');
                         $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] = implode(',', $evaluations);
                     }
                 } else {
@@ -66,9 +66,8 @@ class TcaLoadedEvent
     ): array {
         if (array_key_exists($columnName, $loadedTca['sys_file_reference']['columns'])) {
             return $this->updateColumnForReference($columnName, $loadedTca);
-        } else {
-            return $this->createColumnForReference($columnName, $originalColumn, $loadedTca);
         }
+        return $this->createColumnForReference($columnName, $originalColumn, $loadedTca);
     }
 
     /**
