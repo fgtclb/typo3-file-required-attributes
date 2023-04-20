@@ -16,8 +16,11 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
-class SysFileReferenceCopyrightChangeHook
+class FileReferenceRequiredFieldsHook
 {
+    /**
+     * @throws Exception
+     */
     public function processDatamap_beforeStart(
         DataHandler $dataHandler
     ): void {
@@ -31,7 +34,12 @@ class SysFileReferenceCopyrightChangeHook
             if (array_key_exists('uid_local', $reference)) {
                 $fileId = $reference['uid_local'];
             } else {
-                $originalReference = $this->detectReference((int)$id);
+                if (MathUtility::canBeInterpretedAsInteger($id)) {
+                    $originalReference = $this->detectReference((int)$id);
+                } else {
+                    [, $idSplit] = BackendUtility::splitTable_Uid((string)$id);
+                    $originalReference = $this->detectReference((int)$idSplit);
+                }
                 if ($originalReference === null) {
                     continue;
                 }
