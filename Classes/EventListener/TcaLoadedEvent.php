@@ -83,7 +83,6 @@ class TcaLoadedEvent
     ): array {
         $additionalConfig = [
             'l10n_display' => 'defaultAsReadonly',
-            'label' => 'LLL:EXT:filemetadata/Resources/Private/Language/locallang_tca.xlf:sys_file_metadata.copyright',
             'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
             'config' => [
                 'mode' => 'useOrOverridePlaceholder',
@@ -101,6 +100,10 @@ class TcaLoadedEvent
         $newColumn = $originalColumn;
         ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
         $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
+        foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
+            $palette['showitem'] .= sprintf(',%s', $columnName);
+            $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
+        }
         return $loadedTca;
     }
 
@@ -112,8 +115,7 @@ class TcaLoadedEvent
         string $columnName,
         array $loadedTca
     ): array {
-        $loadedTca['sys_file_reference']['columns'][$columnName]['description']
-            = 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description';
+        //$loadedTca['sys_file_reference']['columns'][$columnName]['description'] = 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description';
         return $loadedTca;
     }
 }
