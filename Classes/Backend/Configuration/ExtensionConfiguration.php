@@ -25,7 +25,7 @@ class ExtensionConfiguration
         //$columns = array_keys($GLOBALS['TCA']['sys_file_metadata']['columns']);
         $assignedValues = [
             'field' => $field,
-            'columns' => $columns ?? [],
+            //'columns' => $columns ?? [],
         ];
         $view->assignMultiple($assignedValues);
         return $view->render();
