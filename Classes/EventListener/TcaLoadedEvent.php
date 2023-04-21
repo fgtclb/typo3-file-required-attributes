@@ -51,6 +51,7 @@ class TcaLoadedEvent
             }
             $loadedTca = $this->createOrUpdateOverrideColumnForReference($requiredColumn, $columns[$requiredColumn], $loadedTca);
         }
+        $loadedTca[$table]['ctrl']['required_attributes'] = $requiredColumns;
         $event->setTca($loadedTca);
     }
 
