@@ -66,6 +66,14 @@ final class RequiredColumnsUtility
         return self::$requiredColumns;
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public static function getRequiredColumnsFromTCA(): array
+    {
+        return $GLOBALS['TCA']['sys_file_metadata']['ctrl']['required_attributes'] ?? [];
+    }
+
     private static function loadTCA(): void
     {
         if (!empty(self::$registeredColumnsInTCA)) {
