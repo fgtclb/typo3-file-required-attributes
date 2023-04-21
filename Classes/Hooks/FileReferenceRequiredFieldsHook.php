@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FGTCLB\FileRequiredAttributes\Hooks;
 
 use Doctrine\DBAL\Driver\Exception;
+use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -30,6 +31,8 @@ class FileReferenceRequiredFieldsHook
         $data = [
             'sys_file_metadata' => [],
         ];
+        $requiredColumns = RequiredColumnsUtility::getRequiredColumns();
+
         foreach ($dataHandler->datamap['sys_file_reference'] as $id => $reference) {
             if (array_key_exists('uid_local', $reference)) {
                 $fileId = $reference['uid_local'];
@@ -46,12 +49,38 @@ class FileReferenceRequiredFieldsHook
                 $fileId = $originalReference['uid_local'];
             }
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
-            if (is_null($sysFileMetaData)) {
+            if ($sysFileMetaData === null) {
                 $sysFileMetaData = [
                     'file' => $fileId,
                     'uid' => StringUtility::getUniqueId('NEW'),
                     'copyright' => '',
                 ];
+            }
+            $missingColumns = [];
+            foreach ($requiredColumns as $requiredColumn) {
+                if ($this->isFieldPartOfReference($requiredColumn)) {
+                    // check and update ref
+                    if (
+                        (
+                            !array_key_exists($requiredColumn, $reference)
+                            && empty($originalReference[$requiredColumn])
+                        )
+                        || empty($reference[$requiredColumn])
+                    ) {
+                        $missingColumns[] = $requiredColumn;
+                    }
+                } else {
+                    // check and update metadata
+                    if (
+                        (
+                            !array_key_exists($requiredColumn, $reference)
+                            && empty($sysFileMetaData[$requiredColumn])
+                        )
+                        || empty($reference[$requiredColumn])
+                    ) {
+                        $missingColumns[] = $requiredColumn;
+                    }
+                }
             }
             if (array_key_exists('copyright', $reference)) {
                 if ($reference['copyright'] !== null) {
@@ -127,29 +156,28 @@ class FileReferenceRequiredFieldsHook
 
     /**
      * @param int|string $field
-     * @return array<int|string,mixed>|null
+     * @return array<int|string, mixed>|null
      * @throws Exception
      */
     private function detectSysFileMetadataRecord(mixed $field): ?array
     {
-        $metaData = null;
-        $id = $field;
-        if (is_string($field)) {
-            $fileData = explode('_', $field);
-            $id = array_pop($fileData);
+        if (MathUtility::canBeInterpretedAsInteger($field)) {
+            $id = (int)$field;
+        } else {
+            [, $id] = BackendUtility::splitTable_Uid((string)$field);
         }
-        if (MathUtility::canBeInterpretedAsInteger($id)) {
-            $db = GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getConnectionForTable('sys_file_metadata');
-            $result = $db->select(
-                ['*'],
-                'sys_file_metadata',
-                [
-                    'uid' => $id,
-                ]
-            );
-            $metaData = $result->fetchAssociative();
-        }
+
+        $db = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getConnectionForTable('sys_file_metadata');
+        $result = $db->select(
+            ['*'],
+            'sys_file_metadata',
+            [
+                'uid' => $id,
+            ]
+        );
+        $metaData = $result->fetchAssociative();
+
         return $metaData ?: null;
     }
 
@@ -171,5 +199,21 @@ class FileReferenceRequiredFieldsHook
         $reference = $result->fetchAssociative();
 
         return $reference ?: null;
+    }
+
+    private function isFieldPartOfReference(string $field): bool
+    {
+        $fieldExists = false;
+        $columns = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getConnectionForTable('sys_file_reference')
+            ->getSchemaManager()
+            ->listTableColumns('sys_file_reference');
+        foreach ($columns as $column) {
+            if ($column->getName() === $field) {
+                $fieldExists = true;
+                break;
+            }
+        }
+        return $fieldExists;
     }
 }

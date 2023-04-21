@@ -100,6 +100,9 @@ class TcaLoadedEvent
         ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
         $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
         foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
+            if (array_key_exists('isHiddenPalette', $palette)) {
+                continue;
+            }
             $palette['showitem'] .= sprintf(',%s', $columnName);
             $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
         }
