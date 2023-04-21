@@ -8,7 +8,9 @@ use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -24,30 +26,45 @@ class FileReferenceRequiredFieldsHook
      */
     public function processDatamap_beforeStart(
         DataHandler $dataHandler
-    ): void {
+    ): void
+    {
         if (empty($dataHandler->datamap['sys_file_reference'])) {
             return;
         }
         $data = [
             'sys_file_metadata' => [],
         ];
-        $requiredColumns = RequiredColumnsUtility::getRequiredColumns();
+        $requiredColumns = RequiredColumnsUtility::getRequiredColumnsFromTCA();
 
         foreach ($dataHandler->datamap['sys_file_reference'] as $id => $reference) {
-            if (array_key_exists('uid_local', $reference)) {
-                $fileId = $reference['uid_local'];
-            } else {
-                if (MathUtility::canBeInterpretedAsInteger($id)) {
-                    $originalReference = $this->detectReference((int)$id);
-                } else {
+            $fileId = null;
+            // ID set, we have an original record
+            if (MathUtility::canBeInterpretedAsInteger($id)) {
+                $originalReference = $this->detectReference((int)$id);
+            } else
+                // string starts with NEW, relation new created
+                if (str_starts_with((string)$id, 'NEW')) {
+                    $fileId = $reference['uid_local'];
+                    $originalReference = [];
+                } // fallback to table_id and split
+                else {
                     [, $idSplit] = BackendUtility::splitTable_Uid((string)$id);
                     $originalReference = $this->detectReference((int)$idSplit);
                 }
-                if ($originalReference === null) {
-                    continue;
-                }
+            if (array_key_exists('uid_local', $originalReference)) {
                 $fileId = $originalReference['uid_local'];
             }
+
+            if ($fileId === null) {
+                // Cleanup, if one of the fields is set. Should NEVER be passed
+                foreach ($requiredColumns as $requiredColumn) {
+                    if (!$this->isFieldPartOfReference($requiredColumn)) {
+                        unset($dataHandler->datamap['sys_file_reference'][$id][$requiredColumn]);
+                    }
+                }
+                continue;
+            }
+
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
             if ($sysFileMetaData === null) {
                 $sysFileMetaData = [
@@ -61,44 +78,38 @@ class FileReferenceRequiredFieldsHook
                 if ($this->isFieldPartOfReference($requiredColumn)) {
                     // check and update ref
                     if (
-                        (
-                            !array_key_exists($requiredColumn, $reference)
-                            && empty($originalReference[$requiredColumn])
+                        !array_key_exists($requiredColumn, $reference)
+                        || (
+                            empty($originalReference[$requiredColumn])
+                            && empty($reference[$requiredColumn])
                         )
-                        || empty($reference[$requiredColumn])
                     ) {
                         $missingColumns[] = $requiredColumn;
                     }
                 } else {
                     // check and update metadata
                     if (
-                        (
-                            !array_key_exists($requiredColumn, $reference)
-                            && empty($sysFileMetaData[$requiredColumn])
+                        !array_key_exists($requiredColumn, $reference)
+                        && (
+                            empty($sysFileMetaData[$requiredColumn])
+                            && empty($reference[$requiredColumn])
                         )
-                        || empty($reference[$requiredColumn])
                     ) {
                         $missingColumns[] = $requiredColumn;
                     }
-                }
-            }
-            if (array_key_exists('copyright', $reference)) {
-                if ($reference['copyright'] !== null) {
-                    $trimmedCopy = $this->trimNewCopyright($reference['copyright']);
-                    if ($trimmedCopy != '') {
+                    if (array_key_exists($requiredColumn, $reference)) {
                         $data['sys_file_metadata'] = [
                             $sysFileMetaData['uid'] => [
-                                'copyright' => $trimmedCopy,
+                                $requiredColumn => $reference[$requiredColumn]
                             ],
                         ];
+                        unset($dataHandler->datamap['sys_file_reference'][$id][$requiredColumn]);
                     }
                 }
-                unset($dataHandler->datamap['sys_file_reference'][$id]['copyright']);
             }
 
             if (
-                !array_key_exists($sysFileMetaData['uid'], $data['sys_file_metadata'])
-                && $sysFileMetaData['copyright'] == ''
+                count($missingColumns) > 0
                 && (
                     !isset($dataHandler->datamap['sys_file_reference'][$id]['hidden'])
                     || $dataHandler->datamap['sys_file_reference'][$id]['hidden'] == 0
@@ -111,6 +122,13 @@ class FileReferenceRequiredFieldsHook
                     $sysFileMetaData['file']
                 );
 
+                $missingColumnsLabels = [];
+                foreach ($missingColumns as $missingColumn) {
+                    $missingColumnsLabels[] = LocalizationUtility::translate(
+                        $GLOBALS['TCA']['sys_file_metadata']['columns'][$missingColumn]['label']
+                    ) ?? $missingColumn;
+                }
+
                 // DataHandler called in CLI mode, too.
                 // To prevent a message overflow, while
                 // import, check for environment
@@ -118,14 +136,15 @@ class FileReferenceRequiredFieldsHook
                     $message = GeneralUtility::makeInstance(
                         FlashMessage::class,
                         LocalizationUtility::translate(
-                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.body',
+                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.body',
                             null,
                             [
                                 $sysFile['name'],
+                                implode('", "', $missingColumnsLabels)
                             ]
                         ),
                         LocalizationUtility::translate(
-                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.copyright.notSet.header'
+                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.header'
                         ),
                         FlashMessage::WARNING,
                         true
@@ -140,18 +159,6 @@ class FileReferenceRequiredFieldsHook
         if (count($data['sys_file_metadata']) > 0) {
             $dataHandler->datamap = array_merge_recursive($dataHandler->datamap, $data);
         }
-    }
-
-    /**
-     * Removes HTML entity &copy; and ©, if set
-     *
-     * @param string $copyright
-     * @return string
-     */
-    private function trimNewCopyright(string $copyright): string
-    {
-        $copyright = str_replace(['&copy;', '©'], '', $copyright);
-        return trim($copyright);
     }
 
     /**
@@ -182,23 +189,23 @@ class FileReferenceRequiredFieldsHook
     }
 
     /**
-     * @return array<int|string, mixed>|null
+     * @return array<int|string, mixed>
      * @throws Exception
      */
-    private function detectReference(int $id): ?array
+    private function detectReference(int $id): array
     {
         $db = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getConnectionForTable('sys_file_reference');
-        $result = $db->select(
-            ['*'],
-            'sys_file_reference',
-            [
-                'uid' => $id,
-            ]
-        );
-        $reference = $result->fetchAssociative();
+            ->getQueryBuilderForTable('sys_file_reference');
+        $db->getRestrictions()->removeByType(HiddenRestriction::class);
+        $result = $db
+            ->select('*')
+            ->from('sys_file_reference')
+            ->where(
+                $db->expr()->eq('uid', $db->createNamedParameter($id, Connection::PARAM_INT))
+            );
+        $reference = $result->executeQuery()->fetchAssociative();
 
-        return $reference ?: null;
+        return $reference ?: [];
     }
 
     private function isFieldPartOfReference(string $field): bool
