@@ -2,7 +2,7 @@
 
 $EM_CONF[$_EXTKEY] = [
     'title' => '(web-vision) Site Template',
-    'description' => 'Marks metadata fields required and disables fire references if required fields are missing',
+    'description' => 'Marks metadata fields required and disables file references if required fields are missing',
     'category' => 'fe,be',
     'state' => 'beta',
     'version' => '1.0.0',

@@ -1,6 +1,6 @@
 {
     "name": "fgtclb/file-required-attributes",
-    "description": "Marks metadata fields required and disables fire references if required fields are missing",
+    "description": "Marks metadata fields required and disables file references if required fields are missing",
     "type": "typo3-cms-extension",
     "license": [
         "GPL-3.0-or-later"
