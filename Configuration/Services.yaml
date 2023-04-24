@@ -12,3 +12,9 @@ services:
       - name: event.listener
         identifier: 'FileRequiredColumnsListener'
         event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
+
+  FGTCLB\FileRequiredAttributes\EventListener\FileListActionsEvent:
+    tags:
+      - name: event.listener
+        identifier: 'FileRequiredColumnsFileListListener'
+        event: TYPO3\CMS\Filelist\Event\ProcessFileListActionsEvent

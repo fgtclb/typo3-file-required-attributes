@@ -28,6 +28,13 @@
 			<trans-unit id="sys_file_reference.global.description">
 				<source>WARNING: Changing this field has behaviour to all related files, as the field is set global!</source>
 			</trans-unit>
+
+			<trans-unit id="sys_file_metadata.notSet.header">
+				<source>Missing required fields in "%s"</source>
+			</trans-unit>
+			<trans-unit id="sys_file_metadata.notSet.body">
+				<source>Not all required attributes are set. File can't be used in references.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
