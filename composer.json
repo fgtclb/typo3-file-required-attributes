@@ -3,7 +3,7 @@
     "description": "Marks metadata fields required and disables fire references if required fields are missing",
     "type": "typo3-cms-extension",
     "license": [
-        "proprietary"
+        "GPL-3.0-or-later"
     ],
     "author": [
         {
