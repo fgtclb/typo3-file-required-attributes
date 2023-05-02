@@ -1,2 +1,2 @@
-# cat=sys_file_metadata;type=user[FGTCLB\FileRequiredAttributes\Backend\Configuration\ExtensionConfiguration->render]; label=Test
-requiredColumns =
+# cat=sys_file_metadata;type=boolean; label=Enable virtual fields in references
+virtualFields = 1

@@ -35,6 +35,10 @@
 			<trans-unit id="sys_file_metadata.notSet.body">
 				<source>Not all required attributes are set. File can't be used in references.</source>
 			</trans-unit>
+
+			<trans-unit id="sys_file_reference.virtual.description">
+				<source>This field shows the original value stored in Metadata</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

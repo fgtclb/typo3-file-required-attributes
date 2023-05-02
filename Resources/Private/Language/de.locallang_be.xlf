@@ -40,6 +40,11 @@
 				<source>Not all required attributes are set. File can't be used in references.</source>
 				<target>Nicht alle benötigten Attribute sind gesetzt. Datei kann nicht referenziert werden.</target>
 			</trans-unit>
+
+			<trans-unit id="sys_file_reference.virtual.description">
+				<source>This field shows the original value stored in Metadata</source>
+				<target>Dieses Feld zeigt den originalen Wert aus den Metadaten an</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

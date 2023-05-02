@@ -20,7 +20,24 @@ class TcaLoadedEvent
         'input',
     ];
 
+    /**
+     * @var string[]
+     */
+    protected static array $overrideMethodNeeded = [
+        'radio',
+        'check',
+        'select',
+    ];
+
     protected static int $typo3Version;
+
+    protected static bool $overrideReferencePossible = false;
+
+    public function __construct()
+    {
+        $extensionConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['file_required_attributes'];
+        self::$overrideReferencePossible = array_key_exists('virtualFields', $extensionConfiguration) && (bool)$extensionConfiguration['virtualFields'];
+    }
 
     public function __invoke(AfterTcaCompilationEvent $event): void
     {
@@ -32,6 +49,15 @@ class TcaLoadedEvent
         $loadedTca = $event->getTca();
         $sysFileMetadata = $loadedTca[$table];
         $columns = $sysFileMetadata['columns'];
+        if (count($requiredColumns) > 0) {
+            foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
+                if (array_key_exists('isHiddenPalette', $palette)) {
+                    continue;
+                }
+                $palette['showitem'] .= ',--linebreak--';
+                $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
+            }
+        }
         foreach ($requiredColumns as $requiredColumn) {
             if (!array_key_exists($requiredColumn, $columns)) {
                 continue;
@@ -42,7 +68,7 @@ class TcaLoadedEvent
                     if (!str_contains($eval, 'required')) {
                         $evaluations = GeneralUtility::trimExplode(',', $eval);
                         $evaluations[] = 'required';
-                        $evaluations = array_filter($evaluations, fn ($value) => $value !== '');
+                        $evaluations = array_filter($evaluations, fn($value) => $value !== '');
                         $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] = implode(',', $evaluations);
                     }
                 } else {
@@ -62,13 +88,27 @@ class TcaLoadedEvent
      */
     protected function createOrUpdateOverrideColumnForReference(
         string $columnName,
-        array $originalColumn,
-        array $loadedTca
-    ): array {
+        array  $originalColumn,
+        array  $loadedTca
+    ): array
+    {
         if (array_key_exists($columnName, $loadedTca['sys_file_reference']['columns'])) {
             return $this->updateColumnForReference($columnName, $loadedTca);
         }
         return $this->createColumnForReference($columnName, $originalColumn, $loadedTca);
+    }
+
+    /**
+     * @param array<string, mixed> $loadedTca
+     * @return array<string, mixed>
+     */
+    protected function updateColumnForReference(
+        string $columnName,
+        array  $loadedTca
+    ): array
+    {
+        //$loadedTca['sys_file_reference']['columns'][$columnName]['description'] = 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description';
+        return $loadedTca;
     }
 
     /**
@@ -78,47 +118,74 @@ class TcaLoadedEvent
      */
     protected function createColumnForReference(
         string $columnName,
-        array $originalColumn,
-        array $loadedTca
-    ): array {
-        $additionalConfig = [
-            'l10n_display' => 'defaultAsReadonly',
-            'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
+        array  $originalColumn,
+        array  $loadedTca
+    ): array
+    {
+        $virtualColumn = 'virtual_' . $columnName;
+        $virtualColumnConfig = [
+            'label' => $originalColumn['label'],
+            'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.virtual.description',
             'config' => [
-                'mode' => 'useOrOverridePlaceholder',
-                'placeholder' => sprintf('__row|uid_local|metadata|%s', $columnName),
-                'default' => null,
+                'type' => 'user',
+                'renderType' => 'fileRequiredAttributeShow',
+                'parameters' => [
+                    'originalField' => $columnName,
+                    'override' => self::$overrideReferencePossible,
+                ],
             ],
         ];
-        if (in_array($originalColumn['config']['type'], self::$requiredSetColumns)) {
-            if (12 > self::$typo3Version) {
-                $additionalConfig['config']['eval'] = 'null';
-            } else {
-                $additionalConfig['config']['nullable'] = true;
-            }
-        }
-        $newColumn = $originalColumn;
-        ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
-        $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
+        $loadedTca['sys_file_reference']['columns'][$virtualColumn] = $virtualColumnConfig;
         foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
             if (array_key_exists('isHiddenPalette', $palette)) {
                 continue;
             }
-            $palette['showitem'] .= sprintf(',%s', $columnName);
+            $palette['showitem'] .= sprintf(',%s', $virtualColumn);
             $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
+        }
+        // add override column, if set
+        if (self::$overrideReferencePossible) {
+            $additionalConfig = [
+                'l10n_display' => 'defaultAsReadonly',
+                'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
+            ];
+            $config = match (true) {
+                in_array($originalColumn['config']['type'], self::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
+                in_array($originalColumn['config']['type'], self::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn)
+            };
+
+            $additionalConfig['config'] = $config;
+            $newColumn = $originalColumn;
+            ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
+            $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
+            foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
+                if (array_key_exists('isHiddenPalette', $palette)) {
+                    continue;
+                }
+                $palette['showitem'] .= sprintf(',%s', $columnName);
+                $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
+            }
         }
         return $loadedTca;
     }
 
-    /**
-     * @param array<string, mixed> $loadedTca
-     * @return array<string, mixed>
-     */
-    protected function updateColumnForReference(
-        string $columnName,
-        array $loadedTca
-    ): array {
-        //$loadedTca['sys_file_reference']['columns'][$columnName]['description'] = 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description';
-        return $loadedTca;
+    private function addOverrideMethod(string $columnName, array $originalColumn): array
+    {
+        return [];
+    }
+
+    private function addOverridePlaceholder(string $columnName, array $originalColumn): array
+    {
+        $config = [
+            'mode' => 'useOrOverridePlaceholder',
+            'placeholder' => sprintf('__row|uid_local|metadata|%s', $columnName),
+            'default' => null,
+        ];
+        if (12 > self::$typo3Version) {
+            $config['eval'] = 'null';
+        } else {
+            $config['nullable'] = true;
+        }
+        return $config;
     }
 }
