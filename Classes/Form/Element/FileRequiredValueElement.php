@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Form\Element;
 
+use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 class FileRequiredValueElement extends AbstractFormElement
 {
@@ -42,13 +44,25 @@ class FileRequiredValueElement extends AbstractFormElement
             )
             ->fetchAssociative();
 
+        $originalFieldConfig = $GLOBALS['TCA']['sys_file_metadata']['columns'][$originalField] ??= [];
+
+        // get the value from the original field
+        $value = $metaData[$originalField] ?? '[empty]';
+
+        // if readio, selct, check, get value from language
+        if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)) {
+            if (method_exists(self::class, $originalFieldConfig['config']['type'])) {
+                $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
+            }
+        }
+
         $html = [];
         $html[] = '<div class="formengine-field-item t3js-formengine-field-item">';
         $html[] = $fieldInformationHtml;
         $html[] =   '<div class="form-wizards-wrap">';
         $html[] =      '<div class="form-wizards-element">';
         $html[] =         '<div class="form-control-wrap">';
-        $html[] =            sprintf('<p>%s</p>', $metaData[$originalField] ?? '[empty]');
+        $html[] =            sprintf('<p>%s</p>', $value);
         $html[] =         '</div>';
         $html[] =      '</div>';
         $html[] =   '</div>';
@@ -56,5 +70,47 @@ class FileRequiredValueElement extends AbstractFormElement
         $resultArray['html'] = implode(LF, $html);
 
         return $resultArray;
+    }
+
+    /**
+     * TODO implement checkboxes
+     * @param array<int|string, mixed> $config
+     */
+    private function check(mixed $value, array $config): string
+    {
+        foreach ($config['config']['items'] ?? [] as $item) {
+            //
+        }
+        return '';
+    }
+
+    /**
+     * @param array<int|string, mixed> $config
+     */
+    private function radio(mixed $value, array $config): string
+    {
+        $label = '';
+        $item = $config['config']['items'][(int)$value] ??= [];
+        if (count($item) > 1) {
+            $localLangLabel = array_key_exists('label', $item) ? $item['label'] : $item[0];
+            $label = LocalizationUtility::translate($localLangLabel) ?? $localLangLabel;
+        }
+
+        return $label;
+    }
+
+    /**
+     * @param array<int|string, mixed> $config
+     */
+    private function select(mixed $value, array $config): string
+    {
+        $label = '';
+        $item = $config['config']['items'][(int)$value] ??= [];
+        if (count($item) > 1) {
+            $localLangLabel = array_key_exists('label', $item) ? $item['label'] : $item[0];
+            $label = LocalizationUtility::translate($localLangLabel) ?? $localLangLabel;
+        }
+
+        return $label;
     }
 }
