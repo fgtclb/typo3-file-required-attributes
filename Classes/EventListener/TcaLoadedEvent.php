@@ -12,23 +12,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TcaLoadedEvent
 {
-    /**
-     * @var string[]
-     */
-    protected static array $requiredSetColumns = [
-        'text',
-        'input',
-    ];
-
-    /**
-     * @var string[]
-     */
-    protected static array $overrideMethodNeeded = [
-        'radio',
-        'check',
-        'select',
-    ];
-
     protected static int $typo3Version;
 
     protected static bool $overrideReferencePossible = false;
@@ -62,7 +45,7 @@ class TcaLoadedEvent
             if (!array_key_exists($requiredColumn, $columns)) {
                 continue;
             }
-            if (in_array($columns[$requiredColumn]['config']['type'], self::$requiredSetColumns)) {
+            if (in_array($columns[$requiredColumn]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
                 if (12 > self::$typo3Version) {
                     $eval = $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] ?? '';
                     if (!str_contains($eval, 'required')) {
@@ -150,8 +133,8 @@ class TcaLoadedEvent
                 'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
             ];
             $config = match (true) {
-                in_array($originalColumn['config']['type'], self::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
-                in_array($originalColumn['config']['type'], self::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn)
+                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
+                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn)
             };
 
             $additionalConfig['config'] = $config;

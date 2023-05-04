@@ -27,6 +27,26 @@ final class RequiredColumnsUtility
     private static array $registeredColumnsInTCA = [];
 
     /**
+     * Fields where required attribute can be set
+     * @var string[]
+     */
+    public static array $requiredSetColumns = [
+        'text',
+        'input',
+    ];
+
+    /**
+     * Fields for override method
+     * Fields for getting label fron TCA
+     * @var string[]
+     */
+    public static array $overrideMethodNeeded = [
+        'radio',
+        'check',
+        'select',
+    ];
+
+    /**
      * @throws ExtensionConfigurationPathDoesNotExistException
      * @throws ExtensionConfigurationExtensionNotConfiguredException
      */
