@@ -41,9 +41,15 @@ class TcaLoadedEvent
                 $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
             }
         }
-        foreach ($requiredColumns as $requiredColumn) {
+        $requiredAttributesConfig = [];
+        foreach ($requiredColumns as $requiredColumnConfig) {
+            $requiredColumn = $requiredColumnConfig['columnName'];
+            $fileTypes = $requiredColumnConfig['fileTypes'];
             if (!array_key_exists($requiredColumn, $columns)) {
                 continue;
+            }
+            foreach ($fileTypes as $fileType) {
+                $requiredAttributesConfig[$fileType][] = $requiredColumn;
             }
             if (in_array($columns[$requiredColumn]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
                 if (12 > self::$typo3Version) {
@@ -58,27 +64,29 @@ class TcaLoadedEvent
                     $loadedTca[$table]['columns'][$requiredColumn]['config']['required'] = true;
                 }
             }
-            $loadedTca = $this->createOrUpdateOverrideColumnForReference($requiredColumn, $columns[$requiredColumn], $loadedTca);
+            $loadedTca = $this->createOrUpdateOverrideColumnForReference($requiredColumn, $columns[$requiredColumn], $loadedTca, $fileTypes);
         }
-        $loadedTca[$table]['ctrl']['required_attributes'] = $requiredColumns;
+        $loadedTca[$table]['ctrl']['required_attributes'] = $requiredAttributesConfig;
         $event->setTca($loadedTca);
     }
 
     /**
      * @param array<string, mixed> $originalColumn
      * @param array<string, mixed> $loadedTca
+     * @param int[] $fileTypes
      * @return array<string, mixed>
      */
     protected function createOrUpdateOverrideColumnForReference(
         string $columnName,
         array  $originalColumn,
-        array  $loadedTca
+        array  $loadedTca,
+        array $fileTypes
     ): array
     {
         if (array_key_exists($columnName, $loadedTca['sys_file_reference']['columns'])) {
             return $this->updateColumnForReference($columnName, $loadedTca);
         }
-        return $this->createColumnForReference($columnName, $originalColumn, $loadedTca);
+        return $this->createColumnForReference($columnName, $originalColumn, $loadedTca, $fileTypes);
     }
 
     /**
@@ -97,12 +105,14 @@ class TcaLoadedEvent
     /**
      * @param array<string, mixed> $originalColumn
      * @param array<string, mixed> $loadedTca
+     * @param int[] $fileTypes
      * @return array<string, mixed>
      */
     protected function createColumnForReference(
         string $columnName,
         array  $originalColumn,
-        array  $loadedTca
+        array  $loadedTca,
+        array $fileTypes
     ): array
     {
         $virtualColumn = 'virtual_' . $columnName;
@@ -119,13 +129,7 @@ class TcaLoadedEvent
             ],
         ];
         $loadedTca['sys_file_reference']['columns'][$virtualColumn] = $virtualColumnConfig;
-        foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
-            if (array_key_exists('isHiddenPalette', $palette)) {
-                continue;
-            }
-            $palette['showitem'] .= sprintf(',%s', $virtualColumn);
-            $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
-        }
+        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($virtualColumn, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
         // add override column, if set
         if (self::$overrideReferencePossible) {
             $additionalConfig = [
@@ -141,14 +145,12 @@ class TcaLoadedEvent
             $newColumn = $originalColumn;
             ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
             $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
-            foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
-                if (array_key_exists('isHiddenPalette', $palette)) {
-                    continue;
-                }
-                $palette['showitem'] .= sprintf(',%s', $columnName);
-                $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
-            }
+            $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
+
         }
+
+        // add linebreak for better UX
+        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette('--linebreak--', $fileTypes, $loadedTca['sys_file_reference']['palettes']);
         return $loadedTca;
     }
 
@@ -170,5 +172,36 @@ class TcaLoadedEvent
             $config['nullable'] = true;
         }
         return $config;
+    }
+
+    /**
+     * @param string $columnName
+     * @param int[] $fileTypes
+     * @param array<int|string, mixed> $palettes
+     * @return array<int|string, mixed>
+     */
+    private function addColumnsToPalette(string $columnName, array $fileTypes, array $palettes): array
+    {
+        $palettesToAdd = [];
+        foreach ($fileTypes as $fileType) {
+            $palettesToAdd[] = RequiredColumnsUtility::$fileTypeToPaletteMapping[$fileType] ?? '';
+        }
+
+        $palettesToAdd = array_filter($palettesToAdd);
+
+        if (empty($palettesToAdd)) {
+            return $palettes;
+        }
+
+        foreach ($palettesToAdd as $paletteToAdd) {
+            if (array_key_exists($paletteToAdd, $palettes)) {
+                if (array_key_exists('isHiddenPalette', $palettes[$paletteToAdd])) {
+                    continue;
+                }
+                $palettes[$paletteToAdd]['showitem'] .= sprintf(',%s', $columnName);
+            }
+        }
+
+        return $palettes;
     }
 }
