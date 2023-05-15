@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Hooks;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -23,6 +24,7 @@ class FileReferenceRequiredFieldsHook
 {
     /**
      * @throws Exception
+     * @throws DBALException
      */
     public function processDatamap_beforeStart(
         DataHandler $dataHandler
@@ -34,7 +36,7 @@ class FileReferenceRequiredFieldsHook
         $data = [
             'sys_file_metadata' => [],
         ];
-        $requiredColumns = RequiredColumnsUtility::getRequiredColumnsFromTCA();
+        $requiredColumnsMatrix = RequiredColumnsUtility::getRequiredColumnsFromTCA();
 
         foreach ($dataHandler->datamap['sys_file_reference'] as $id => $reference) {
             $fileId = null;
@@ -44,7 +46,18 @@ class FileReferenceRequiredFieldsHook
             } else
                 // string starts with NEW, relation new created
                 if (str_starts_with((string)$id, 'NEW')) {
-                    $fileId = $reference['uid_local'];
+                    if (MathUtility::canBeInterpretedAsInteger($reference['uid_local'])) {
+                        $fileId = $reference['uid_local'];
+                    } else {
+                        [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
+                        if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
+                            throw new \InvalidArgumentException(
+                                sprintf('Given file reference "%s" not usable', $reference['uid_local']),
+                                1684163297042
+                            );
+                        }
+                        $fileId = (int)$fileId;
+                    }
                     $originalReference = [];
                 } // fallback to table_id and split
                 else {
@@ -57,13 +70,19 @@ class FileReferenceRequiredFieldsHook
 
             if ($fileId === null) {
                 // Cleanup, if one of the fields is set. Should NEVER be passed
-                foreach ($requiredColumns as $requiredColumn) {
-                    if (!$this->isFieldPartOfReference($requiredColumn)) {
-                        unset($dataHandler->datamap['sys_file_reference'][$id][$requiredColumn]);
+                foreach ($requiredColumnsMatrix as $requiredColumns) {
+                    foreach ($requiredColumns as $requiredColumn) {
+                        if (!$this->isFieldPartOfReference($requiredColumn)) {
+                            unset($dataHandler->datamap['sys_file_reference'][$id][$requiredColumn]);
+                        }
                     }
                 }
                 continue;
             }
+
+            $originalFile = $this->getFileRecord($fileId);
+
+            $requiredColumns = $requiredColumnsMatrix[$originalFile['type']] ?? [];
 
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
             if ($sysFileMetaData === null) {
@@ -78,31 +97,26 @@ class FileReferenceRequiredFieldsHook
                 if ($this->isFieldPartOfReference($requiredColumn)) {
                     // check and update ref
                     if (
-                        !array_key_exists($requiredColumn, $reference)
-                        || (
-                            empty($originalReference[$requiredColumn])
-                            && empty($reference[$requiredColumn])
-                        )
+                        !isset($originalReference[$requiredColumn])
+                        && !isset($reference[$requiredColumn])
                     ) {
                         $missingColumns[] = $requiredColumn;
                     }
                 } else {
                     // check and update metadata
                     if (
-                        !array_key_exists($requiredColumn, $reference)
-                        && (
-                            empty($sysFileMetaData[$requiredColumn])
-                            && empty($reference[$requiredColumn])
-                        )
+                        !isset($sysFileMetaData[$requiredColumn])
+                        && !isset($reference[$requiredColumn])
                     ) {
                         $missingColumns[] = $requiredColumn;
+                    } elseif (isset($reference[$requiredColumn])) {
+                        $data['sys_file_metadata'][$sysFileMetaData['uid']][$requiredColumn] = $reference[$requiredColumn];
                     }
-                    if (array_key_exists($requiredColumn, $reference)) {
-                        $data['sys_file_metadata'] = [
-                            $sysFileMetaData['uid'] => [
-                                $requiredColumn => $reference[$requiredColumn]
-                            ],
-                        ];
+                    // force unsetting virtual field
+                    // isset would not match
+                    // when value is empty or null,
+                    // but removal must be enforced
+                    if (array_key_exists($requiredColumn, $dataHandler->datamap['sys_file_reference'][$id])) {
                         unset($dataHandler->datamap['sys_file_reference'][$id][$requiredColumn]);
                     }
                 }
@@ -191,6 +205,7 @@ class FileReferenceRequiredFieldsHook
     /**
      * @return array<int|string, mixed>
      * @throws Exception
+     * @throws DBALException
      */
     private function detectReference(int $id): array
     {
@@ -222,5 +237,16 @@ class FileReferenceRequiredFieldsHook
             }
         }
         return $fieldExists;
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function getFileRecord(int $fileId): array
+    {
+        return BackendUtility::getRecord(
+            'sys_file',
+            $fileId
+        ) ?? [];
     }
 }
