@@ -96,7 +96,7 @@ final class RequiredColumnsUtility
     }
 
     /**
-     * @return array<int, array{columnName: string, fileTypes: string[]}>
+     * @return array<int, array{columnName: string, fileTypes: int[]}>
      */
     public static function getRequiredColumns(): array
     {
@@ -104,7 +104,7 @@ final class RequiredColumnsUtility
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array<int, string>>
      */
     public static function getRequiredColumnsFromTCA(): array
     {
