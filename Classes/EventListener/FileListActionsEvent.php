@@ -22,7 +22,8 @@ class FileListActionsEvent
         /** @var File $file */
         $file = $event->getResource();
         $meta = $file->getMetaData();
-        $required = RequiredColumnsUtility::getRequiredColumnsFromTCA();
+        $requiredMatrix = RequiredColumnsUtility::getRequiredColumnsFromTCA();
+        $required = $requiredMatrix[$file->getType()] ?? [];
         $missing = false;
         foreach ($required as $column) {
             if (!$meta->offsetExists($column) || empty($meta->offsetGet($column))) {
