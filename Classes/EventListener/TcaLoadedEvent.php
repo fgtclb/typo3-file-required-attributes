@@ -50,18 +50,19 @@ class TcaLoadedEvent
             }
             foreach ($fileTypes as $fileType) {
                 $requiredAttributesConfig[$fileType][] = $requiredColumn;
-            }
-            if (in_array($columns[$requiredColumn]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
-                if (12 > self::$typo3Version) {
-                    $eval = $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] ?? '';
-                    if (!str_contains($eval, 'required')) {
-                        $evaluations = GeneralUtility::trimExplode(',', $eval);
-                        $evaluations[] = 'required';
-                        $evaluations = array_filter($evaluations, fn($value) => $value !== '');
-                        $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] = implode(',', $evaluations);
+
+                if (in_array($columns[$requiredColumn]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
+                    if (12 > self::$typo3Version) {
+                        $eval = $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] ?? '';
+                        if (!str_contains($eval, 'required')) {
+                            $evaluations = GeneralUtility::trimExplode(',', $eval);
+                            $evaluations[] = 'required';
+                            $evaluations = array_filter($evaluations, fn($value) => $value !== '');
+                            $loadedTca[$table]['types'][$fileType]['columnsOverrides'][$requiredColumn]['config']['eval'] = implode(',', $evaluations);
+                        }
+                    } else {
+                        $loadedTca[$table]['types'][$fileType]['columnsOverrides'][$requiredColumn]['config']['required'] = true;
                     }
-                } else {
-                    $loadedTca[$table]['columns'][$requiredColumn]['config']['required'] = true;
                 }
             }
             $loadedTca = $this->createOrUpdateOverrideColumnForReference($requiredColumn, $columns[$requiredColumn], $loadedTca, $fileTypes);

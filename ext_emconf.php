@@ -1,7 +1,7 @@
 <?php
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => '(web-vision) Site Template',
+    'title' => 'FGTCLB File required attributes',
     'description' => 'Marks metadata fields required and disables file references if required fields are missing',
     'category' => 'fe,be',
     'state' => 'beta',

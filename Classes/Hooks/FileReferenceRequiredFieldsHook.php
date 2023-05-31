@@ -99,6 +99,7 @@ class FileReferenceRequiredFieldsHook
                     if (
                         !isset($originalReference[$requiredColumn])
                         && !isset($reference[$requiredColumn])
+                        && !isset($sysFileMetaData[$requiredColumn])
                     ) {
                         $missingColumns[] = $requiredColumn;
                     }
