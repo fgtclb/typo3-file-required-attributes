@@ -30,10 +30,32 @@ your extension:
 declare(strict_types=1);
 
 (static function (): void {
-    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register('copyright');
-    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register('alternative');
-    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register('title');
-    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register('description');
+    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
+        'copyright',
+        [
+            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            // ...
+        ]
+    );
+    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
+        'alternative',
+        [
+            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            // ...
+        ]
+    );
+    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
+        'title',
+        [
+            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+        ]
+    );
+    \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
+        'description',
+        [
+            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+        ]
+    );
 })();
 ```
 
