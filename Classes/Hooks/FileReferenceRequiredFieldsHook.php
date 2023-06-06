@@ -195,7 +195,7 @@ class FileReferenceRequiredFieldsHook
             ['*'],
             'sys_file_metadata',
             [
-                'uid' => $id,
+                'file' => $id,
             ]
         );
         $metaData = $result->fetchAssociative();
