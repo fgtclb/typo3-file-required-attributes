@@ -31,6 +31,10 @@
 				<source>Following required fields are missing for file "%s": "%s" The file was disabled. Set the fields and then enable the file.</source>
 				<target>Folgende Felder sind benötigt, fehlen aber bei Datei "%s": "%s". Die Referenz wurde deaktiviert. Fügen Sie die Felder hinzu und aktivieren Sie die Referenz.</target>
 			</trans-unit>
+			<trans-unit id="sys_file_reference.global.description">
+				<source>WARNING: Changing this field has behaviour to all related files, as the field is set global!</source>
+				<target>WARNUNG: Eine Änderung dieses Feldes wirkt sich auf alle zugehörigen Dateien aus, da das Feld global gesetzt ist!</target>
+			</trans-unit>
 
 			<trans-unit id="sys_file_metadata.notSet.header">
 				<source>Missing required fields in "%s"</source>
