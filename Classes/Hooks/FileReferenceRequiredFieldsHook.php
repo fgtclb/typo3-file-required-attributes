@@ -15,6 +15,7 @@ use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -172,7 +173,7 @@ class FileReferenceRequiredFieldsHook
             }
         }
         if (count($data['sys_file_metadata']) > 0) {
-            $dataHandler->datamap = array_merge_recursive($dataHandler->datamap, $data);
+            ArrayUtility::mergeRecursiveWithOverrule($dataHandler->datamap, $data);
         }
     }
 
