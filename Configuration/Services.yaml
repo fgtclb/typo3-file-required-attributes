@@ -7,6 +7,9 @@ services:
   FGTCLB\FileRequiredAttributes\:
     resource: '../Classes/*'
 
+  FGTCLB\FileRequiredAttributes\Hooks\FileReferenceRequiredFieldsHook:
+    public: true
+
   FGTCLB\FileRequiredAttributes\EventListener\TcaLoadedEvent:
     tags:
       - name: event.listener
