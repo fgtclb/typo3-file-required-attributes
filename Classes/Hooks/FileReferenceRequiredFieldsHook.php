@@ -6,6 +6,7 @@ namespace FGTCLB\FileRequiredAttributes\Hooks;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\Exception;
+use FGTCLB\FileRequiredAttributes\Event\PostRequiredFieldCheckEvent;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Core\Environment;
@@ -13,6 +14,7 @@ use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -23,6 +25,14 @@ use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 class FileReferenceRequiredFieldsHook
 {
+    private EventDispatcher $eventDispatcher;
+
+    public function __construct(
+        EventDispatcher $eventDispatcher
+    ) {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
     /**
      * @throws Exception
      * @throws DBALException
@@ -82,8 +92,16 @@ class FileReferenceRequiredFieldsHook
             }
 
             $originalFile = $this->getFileRecord($fileId);
-
             $requiredColumns = $requiredColumnsMatrix[$originalFile['type']] ?? [];
+
+            /** @var PostRequiredFieldCheckEvent $event */
+            $event = $this->eventDispatcher->dispatch(new PostRequiredFieldCheckEvent($reference, $requiredColumns));
+            $requiredColumns = $event->getRequiredColumns();
+
+            // Skip required field check
+            if ($requiredColumns === []) {
+                return;
+            }
 
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
             if ($sysFileMetaData === null) {
