@@ -12,7 +12,10 @@
         }
     ],
     "require": {
-        "typo3/cms-core": "^11.5"
+        "php": "^8.1 || ^8.2 || ^8.3",
+        "typo3/cms-backend": "^11.5 || ^12.4",
+        "typo3/cms-core": "^11.5 || ^12.4",
+        "typo3/cms-filemetadata": "^11.5 || ^12.4"
     },
     "autoload": {
         "psr-4": {
@@ -26,7 +29,27 @@
     },
     "extra": {
         "typo3/cms": {
+			"web-dir": ".Build/Web",
             "extension-key": "file_required_attributes"
         }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.59",
+        "helmich/typo3-typoscript-lint": "^3.2",
+        "phpstan/phpstan": "^1.11",
+        "phpunit/phpunit": "^10.5",
+        "saschaegerer/phpstan-typo3": "^1.10",
+        "staabm/phpstan-todo-by": "^0.1.27",
+        "typo3/testing-framework": "^7.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        },
+		"vendor-dir": ".Build/vendor",
+		"bin-dir": ".Build/bin",
+		"optimize-autoloader": true,
+        "sort-packages": true
     }
 }
