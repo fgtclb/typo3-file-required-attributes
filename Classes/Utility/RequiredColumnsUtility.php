@@ -18,7 +18,11 @@ final class RequiredColumnsUtility
 {
     /**
      * Holds as required registered fields
-     * @var array<int, array{columnName: string, fileTypes: int[]}>
+     * @var array<int, array{
+     *     columnName: string,
+     *     fileTypes: int[],
+     *     override: bool
+     * }>
      */
     private static array $requiredColumns = [];
 
@@ -60,23 +64,13 @@ final class RequiredColumnsUtility
     ];
 
     /**
-     * @throws ExtensionConfigurationPathDoesNotExistException
-     * @throws ExtensionConfigurationExtensionNotConfiguredException
-     */
-    public static function loadConfigFromExt(): void
-    {
-        $backendConfiguration = GeneralUtility::makeInstance(ExtensionConfiguration::class)
-            ->get('file_required_attributes');
-    }
-
-    /**
      * registers a metadata field as required.
      * For call in TCA/Overrides/sys_file_metadata.php
      * @param int[] $fileTypes Require on fileTypes,
      * @see \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_*
      * @@throws RuntimeException
      */
-    public static function register(string $columnName, array $fileTypes): void
+    public static function register(string $columnName, array $fileTypes, bool $override = false): void
     {
         self::loadTCA();
         if (!array_key_exists($columnName, self::$registeredColumnsInTCA)) {
@@ -92,11 +86,16 @@ final class RequiredColumnsUtility
         self::$requiredColumns[] = [
             'columnName' => $columnName,
             'fileTypes' => $fileTypes,
+            'override' => $override,
         ];
     }
 
     /**
-     * @return array<int, array{columnName: string, fileTypes: int[]}>
+     * @return array<int, array{
+     *     columnName: string,
+     *     fileTypes: int[],
+     *     override: bool
+     * }>
      */
     public static function getRequiredColumns(): array
     {
