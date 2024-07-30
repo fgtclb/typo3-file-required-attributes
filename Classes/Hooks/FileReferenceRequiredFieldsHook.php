@@ -100,7 +100,7 @@ class FileReferenceRequiredFieldsHook
 
             // Skip required field check
             if ($requiredColumns === []) {
-                return;
+                continue;
             }
 
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
