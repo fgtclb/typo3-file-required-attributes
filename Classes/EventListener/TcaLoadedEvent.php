@@ -4,175 +4,84 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\EventListener;
 
+use FGTCLB\FileRequiredAttributes\Service\MetadataService;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent;
 use TYPO3\CMS\Core\Information\Typo3Version;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class TcaLoadedEvent
+final class TcaLoadedEvent
 {
     protected static int $typo3Version;
 
-    protected static bool $overrideReferencePossible = false;
+    private const DEFAULT_REQUIRED_CONFIGURATION = [
+        'type' => 'user',
+        'renderType' => 'fileRequiredElement',
+        'parameters' => [
+            'originalField' => '',
+            'originalConfiguration' => [],
+            'override' => false,
+        ]
+    ];
 
-    public function __construct()
-    {
-        $extensionConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['file_required_attributes'];
-        self::$overrideReferencePossible = array_key_exists('virtualFields', $extensionConfiguration) && (bool)$extensionConfiguration['virtualFields'];
+    public function __construct(
+        private readonly MetadataService $metadataService
+    ) {
+        self::$typo3Version = GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion();
     }
 
     public function __invoke(AfterTcaCompilationEvent $event): void
     {
-        self::$typo3Version = GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion();
         $requiredColumns = RequiredColumnsUtility::getRequiredColumns();
 
-        $table = 'sys_file_metadata';
-
         $loadedTca = $event->getTca();
-        $sysFileMetadata = $loadedTca[$table];
-        $columns = $sysFileMetadata['columns'];
-        if (count($requiredColumns) > 0) {
-            foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
-                if (array_key_exists('isHiddenPalette', $palette)) {
-                    continue;
-                }
-                $palette['showitem'] .= ',--linebreak--';
-                $loadedTca['sys_file_reference']['palettes'][$paletteKey] = $palette;
-            }
-        }
+
         $requiredAttributesConfig = [];
         foreach ($requiredColumns as $requiredColumnConfig) {
             $requiredColumn = $requiredColumnConfig['columnName'];
-            $fileTypes = $requiredColumnConfig['fileTypes'];
-            if (!array_key_exists($requiredColumn, $columns)) {
+            if (!$this->metadataService->isFieldInMetadata($requiredColumn)) {
                 continue;
             }
-            foreach ($fileTypes as $fileType) {
-                $requiredAttributesConfig[$fileType][] = $requiredColumn;
+            $fileTypes = $requiredColumnConfig['fileTypes'];
+            $override  = $requiredColumnConfig['override'];
 
-                if (in_array($columns[$requiredColumn]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
-                    if (12 > self::$typo3Version) {
-                        $eval = $loadedTca[$table]['columns'][$requiredColumn]['config']['eval'] ?? '';
-                        if (!str_contains($eval, 'required')) {
-                            $evaluations = GeneralUtility::trimExplode(',', $eval);
-                            $evaluations[] = 'required';
-                            $evaluations = array_filter($evaluations, fn($value) => $value !== '');
-                            $loadedTca[$table]['types'][$fileType]['columnsOverrides'][$requiredColumn]['config']['eval'] = implode(',', $evaluations);
-                        }
-                    } else {
-                        $loadedTca[$table]['types'][$fileType]['columnsOverrides'][$requiredColumn]['config']['required'] = true;
-                    }
-                }
-            }
-            $loadedTca = $this->createOrUpdateOverrideColumnForReference($requiredColumn, $columns[$requiredColumn], $loadedTca, $fileTypes);
+            $this->makeMetadataFieldRequired($loadedTca, $requiredAttributesConfig, $requiredColumn, $fileTypes);
+
+            $this->createOrUpdateOverrideColumnForReference($loadedTca, $requiredColumn, $fileTypes, $override);
         }
-        $loadedTca[$table]['ctrl']['required_attributes'] = $requiredAttributesConfig;
+        $loadedTca[MetadataService::SYS_FILE_METADATA]['ctrl']['required_attributes'] = $requiredAttributesConfig;
         $event->setTca($loadedTca);
     }
 
     /**
-     * @param array<string, mixed> $originalColumn
      * @param array<string, mixed> $loadedTca
      * @param int[] $fileTypes
-     * @return array<string, mixed>
      */
-    protected function createOrUpdateOverrideColumnForReference(
+    private function createOrUpdateOverrideColumnForReference(
+        array  &$loadedTca,
         string $columnName,
-        array  $originalColumn,
-        array  $loadedTca,
-        array $fileTypes
-    ): array
-    {
-        if (array_key_exists($columnName, $loadedTca['sys_file_reference']['columns'])) {
-            return $this->updateColumnForReference($columnName, $loadedTca);
+        array $fileTypes,
+        bool $override
+    ): void {
+        // override means the column can be overridden from reference to metadata
+        // always enabled for virtual fields, existing fields must explicitly set
+        $override = $override || !$this->metadataService->isFieldInReference($columnName);
+        $columnsConfig = self::DEFAULT_REQUIRED_CONFIGURATION;
+        $columnsConfig['parameters']['override'] = $override;
+        $columnsConfig['parameters']['originalField'] = $columnName;
+        $columnsConfig['parameters']['originalConfiguration'] = $loadedTca[MetadataService::SYS_FILE_METADATA]['columns'][$columnName] ?? [];
+
+        $loadedTca[MetadataService::SYS_FILE_REFERENCE]['columns'][$columnName]['label'] ??= $loadedTca[MetadataService::SYS_FILE_METADATA]['columns'][$columnName]['label'];
+        $loadedTca[MetadataService::SYS_FILE_REFERENCE]['columns'][$columnName]['config'] = $columnsConfig;
+
+        if (!$this->metadataService->isFieldInReference($columnName)) {
+            $loadedTca[MetadataService::SYS_FILE_REFERENCE]['palettes'] =
+                $this->addColumnsToPalette(
+                    $columnName,
+                    $fileTypes,
+                    $loadedTca[MetadataService::SYS_FILE_REFERENCE]['palettes'] ?? []
+                );
         }
-        return $this->createColumnForReference($columnName, $originalColumn, $loadedTca, $fileTypes);
-    }
-
-    /**
-     * @param array<string, mixed> $loadedTca
-     * @return array<string, mixed>
-     */
-    protected function updateColumnForReference(
-        string $columnName,
-        array  $loadedTca
-    ): array
-    {
-        //$loadedTca['sys_file_reference']['columns'][$columnName]['description'] = 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description';
-        return $loadedTca;
-    }
-
-    /**
-     * @param array<string, mixed> $originalColumn
-     * @param array<string, mixed> $loadedTca
-     * @param int[] $fileTypes
-     * @return array<string, mixed>
-     */
-    protected function createColumnForReference(
-        string $columnName,
-        array  $originalColumn,
-        array  $loadedTca,
-        array $fileTypes
-    ): array
-    {
-        $virtualColumn = 'virtual_' . $columnName;
-        $virtualColumnConfig = [
-            'label' => $originalColumn['label'],
-            'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.virtual.description',
-            'config' => [
-                'type' => 'user',
-                'renderType' => 'fileRequiredAttributeShow',
-                'parameters' => [
-                    'originalField' => $columnName,
-                    'override' => self::$overrideReferencePossible,
-                ],
-            ],
-        ];
-        $loadedTca['sys_file_reference']['columns'][$virtualColumn] = $virtualColumnConfig;
-        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($virtualColumn, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
-        // add override column, if set
-        if (self::$overrideReferencePossible) {
-            $additionalConfig = [
-                'l10n_display' => 'defaultAsReadonly',
-                'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
-            ];
-            $config = match (true) {
-                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
-                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn)
-            };
-
-            $additionalConfig['config'] = $config;
-            $newColumn = $originalColumn;
-            ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
-            $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
-            $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
-
-        }
-
-        // add linebreak for better UX
-        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette('--linebreak--', $fileTypes, $loadedTca['sys_file_reference']['palettes']);
-        return $loadedTca;
-    }
-
-    private function addOverrideMethod(string $columnName, array $originalColumn): array
-    {
-        return [];
-    }
-
-    private function addOverridePlaceholder(string $columnName, array $originalColumn): array
-    {
-        $config = [
-            'mode' => 'useOrOverridePlaceholder',
-            'placeholder' => sprintf('__row|uid_local|metadata|%s', $columnName),
-            'default' => null,
-        ];
-        if (12 > self::$typo3Version) {
-            $config['eval'] = 'null';
-        } else {
-            $config['nullable'] = true;
-        }
-        return $config;
     }
 
     /**
@@ -204,5 +113,23 @@ class TcaLoadedEvent
         }
 
         return $palettes;
+    }
+
+    private function makeMetadataFieldRequired(array &$loadedTca, array &$requiredAttributesConfig, string $fieldName, array $fileTypes): void
+    {
+        foreach ($fileTypes as $fileType) {
+            $requiredAttributesConfig[$fileType][] = $fieldName;
+            if (in_array($loadedTca[MetadataService::SYS_FILE_METADATA]['columns'][$fieldName]['config']['type'], RequiredColumnsUtility::$requiredSetColumns)) {
+                if (self::$typo3Version < 12) {
+                    $eval = $loadedTca[MetadataService::SYS_FILE_METADATA]['columns'][$fieldName]['config']['eval'] ?? '';
+                    $evaluations = GeneralUtility::trimExplode(',', $eval, true);
+                    $evaluations[] = 'required';
+                    $evaluations = array_filter(array_unique($evaluations), fn($value) => $value !== '');
+                    $loadedTca[MetadataService::SYS_FILE_METADATA]['types'][$fileType]['columnsOverrides'][$fieldName]['config']['eval'] = implode(',', $evaluations);
+                } else {
+                    $loadedTca[MetadataService::SYS_FILE_METADATA]['types'][$fileType]['columnsOverrides'][$fieldName]['config']['required'] = true;
+                }
+            }
+        }
     }
 }
