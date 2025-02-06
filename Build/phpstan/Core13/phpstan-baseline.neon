@@ -1,0 +1,21 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method FGTCLB\\\\FileRequiredAttributes\\\\EventListener\\\\TcaLoadedEvent\\:\\:addOverrideMethod\\(\\) has parameter \\$originalColumn with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/EventListener/TcaLoadedEvent.php
+
+		-
+			message: "#^Method FGTCLB\\\\FileRequiredAttributes\\\\EventListener\\\\TcaLoadedEvent\\:\\:addOverrideMethod\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/EventListener/TcaLoadedEvent.php
+
+		-
+			message: "#^Method FGTCLB\\\\FileRequiredAttributes\\\\EventListener\\\\TcaLoadedEvent\\:\\:addOverridePlaceholder\\(\\) has parameter \\$originalColumn with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/EventListener/TcaLoadedEvent.php
+
+		-
+			message: "#^Method FGTCLB\\\\FileRequiredAttributes\\\\EventListener\\\\TcaLoadedEvent\\:\\:addOverridePlaceholder\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../../../Classes/EventListener/TcaLoadedEvent.php
