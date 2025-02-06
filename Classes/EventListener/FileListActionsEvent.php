@@ -5,15 +5,21 @@ declare(strict_types=1);
 namespace FGTCLB\FileRequiredAttributes\EventListener;
 
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
+use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use TYPO3\CMS\Filelist\Event\ProcessFileListActionsEvent;
 
-class FileListActionsEvent
+final class FileListActionsEvent
 {
+    public function __construct(
+        private readonly LanguageServiceFactory $languageServiceFactory,
+        private readonly FlashMessageService $flashMessageService,
+    ) {}
+
     public function __invoke(ProcessFileListActionsEvent $event): void
     {
         if (!$event->isFile()) {
@@ -36,22 +42,23 @@ class FileListActionsEvent
                 $actionItems['metadata'] = str_replace('btn-default', 'btn-danger', $actionItems['metadata']);
                 $event->setActionItems($actionItems);
             }
-            $flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
+            $languageService = $this->languageServiceFactory->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
             $flashMessage = GeneralUtility::makeInstance(
                 FlashMessage::class,
-                LocalizationUtility::translate(
+                $languageService->sL(
                     'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.body'
                 ),
-                LocalizationUtility::translate(
-                    'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.header',
-                    null,
-                    [
-                        $file->getName(),
-                    ]
+                sprintf(
+                    $languageService->sL(
+                        'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.header'
+                    ),
+                    $file->getName(),
                 ),
-                FlashMessage::WARNING
+                ContextualFeedbackSeverity::WARNING
             );
-            $flashMessageService->getMessageQueueByIdentifier()->addMessage($flashMessage);
+            $this->flashMessageService
+                ->getMessageQueueByIdentifier()
+                ->addMessage($flashMessage);
         }
     }
 }
