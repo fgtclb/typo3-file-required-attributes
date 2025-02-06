@@ -9,13 +9,12 @@ use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
-class FileRequiredValueElement extends AbstractFormElement
+final class FileRequiredValueElement extends AbstractFormElement
 {
-
     /**
      * @inheritDoc
+     * @return array{html?: string}
      */
     public function render(): array
     {
@@ -33,6 +32,9 @@ class FileRequiredValueElement extends AbstractFormElement
             $row['uid'],
             'uid_local'
         );
+        if ($originalRow === null) {
+            return $resultArray;
+        }
         $metaData = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable('sys_file_metadata')
             ->select(
@@ -49,7 +51,7 @@ class FileRequiredValueElement extends AbstractFormElement
         // get the value from the original field
         $value = $metaData[$originalField] ?? '[empty]';
 
-        // if readio, selct, check, get value from language
+        // if radio, select, check, get value from language
         if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)) {
             if (method_exists(self::class, $originalFieldConfig['config']['type'])) {
                 $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
@@ -73,7 +75,7 @@ class FileRequiredValueElement extends AbstractFormElement
     }
 
     /**
-     * TODO implement checkboxes
+     * @todo implement checkboxes
      * @param array<int|string, mixed> $config
      */
     private function check(mixed $value, array $config): string
@@ -93,7 +95,7 @@ class FileRequiredValueElement extends AbstractFormElement
         $item = $config['config']['items'][(int)$value] ??= [];
         if (count($item) > 1) {
             $localLangLabel = array_key_exists('label', $item) ? $item['label'] : $item[0];
-            $label = LocalizationUtility::translate($localLangLabel) ?? $localLangLabel;
+            $label = $this->getLanguageService()->sL($localLangLabel);
         }
 
         return $label;
@@ -108,7 +110,7 @@ class FileRequiredValueElement extends AbstractFormElement
         $item = $config['config']['items'][(int)$value] ??= [];
         if (count($item) > 1) {
             $localLangLabel = array_key_exists('label', $item) ? $item['label'] : $item[0];
-            $label = LocalizationUtility::translate($localLangLabel) ?? $localLangLabel;
+            $label = $this->getLanguageService()->sL($localLangLabel);
         }
 
         return $label;

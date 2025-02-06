@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Hooks;
 
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Event\PostRequiredFieldCheckEvent;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
@@ -15,32 +14,29 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
-use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
-class FileReferenceRequiredFieldsHook
+final class FileReferenceRequiredFieldsHook
 {
-    private EventDispatcher $eventDispatcher;
-
     public function __construct(
-        EventDispatcher $eventDispatcher
-    ) {
-        $this->eventDispatcher = $eventDispatcher;
-    }
+        private readonly EventDispatcher $eventDispatcher,
+        private readonly LanguageServiceFactory $languageServiceFactory,
+    ) {}
 
     /**
      * @throws Exception
-     * @throws DBALException
      */
     public function processDatamap_beforeStart(
         DataHandler $dataHandler
-    ): void
-    {
+    ): void {
         if (empty($dataHandler->datamap['sys_file_reference'])) {
             return;
         }
@@ -54,27 +50,26 @@ class FileReferenceRequiredFieldsHook
             // ID set, we have an original record
             if (MathUtility::canBeInterpretedAsInteger($id)) {
                 $originalReference = $this->detectReference((int)$id);
-            } else
-                // string starts with NEW, relation new created
-                if (str_starts_with((string)$id, 'NEW')) {
-                    if (MathUtility::canBeInterpretedAsInteger($reference['uid_local'])) {
-                        $fileId = $reference['uid_local'];
-                    } else {
-                        [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
-                        if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
-                            throw new \InvalidArgumentException(
-                                sprintf('Given file reference "%s" not usable', $reference['uid_local']),
-                                1684163297042
-                            );
-                        }
-                        $fileId = (int)$fileId;
+            } elseif // string starts with NEW, relation new created
+            (str_starts_with((string)$id, 'NEW')) {
+                if (MathUtility::canBeInterpretedAsInteger($reference['uid_local'])) {
+                    $fileId = $reference['uid_local'];
+                } else {
+                    [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
+                    if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
+                        throw new \InvalidArgumentException(
+                            sprintf('Given file reference "%s" not usable', $reference['uid_local']),
+                            1684163297042
+                        );
                     }
-                    $originalReference = [];
-                } // fallback to table_id and split
-                else {
-                    [, $idSplit] = BackendUtility::splitTable_Uid((string)$id);
-                    $originalReference = $this->detectReference((int)$idSplit);
+                    $fileId = (int)$fileId;
                 }
+                $originalReference = [];
+            } // fallback to table_id and split
+            else {
+                [, $idSplit] = BackendUtility::splitTable_Uid((string)$id);
+                $originalReference = $this->detectReference((int)$idSplit);
+            }
             if (array_key_exists('uid_local', $originalReference)) {
                 $fileId = $originalReference['uid_local'];
             }
@@ -158,9 +153,9 @@ class FileReferenceRequiredFieldsHook
 
                 $missingColumnsLabels = [];
                 foreach ($missingColumns as $missingColumn) {
-                    $missingColumnsLabels[] = LocalizationUtility::translate(
+                    $missingColumnsLabels[] = $this->getLanguageService()->sL(
                         $GLOBALS['TCA']['sys_file_metadata']['columns'][$missingColumn]['label']
-                    ) ?? $missingColumn;
+                    );
                 }
 
                 // DataHandler called in CLI mode, too.
@@ -169,18 +164,17 @@ class FileReferenceRequiredFieldsHook
                 if (!Environment::isCli()) {
                     $message = GeneralUtility::makeInstance(
                         FlashMessage::class,
-                        LocalizationUtility::translate(
-                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.body',
-                            null,
-                            [
-                                $sysFile['name'],
-                                implode('", "', $missingColumnsLabels)
-                            ]
+                        sprintf(
+                            $this->getLanguageService()->sL(
+                                'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.body'
+                            ),
+                            $sysFile['name'],
+                            implode('", "', $missingColumnsLabels)
                         ),
-                        LocalizationUtility::translate(
+                        $this->getLanguageService()->sL(
                             'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.header'
                         ),
-                        FlashMessage::WARNING,
+                        ContextualFeedbackSeverity::WARNING,
                         true
                     );
 
@@ -225,7 +219,6 @@ class FileReferenceRequiredFieldsHook
     /**
      * @return array<int|string, mixed>
      * @throws Exception
-     * @throws DBALException
      */
     private function detectReference(int $id): array
     {
@@ -248,8 +241,9 @@ class FileReferenceRequiredFieldsHook
         $fieldExists = false;
         $columns = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable('sys_file_reference')
-            ->getSchemaManager()
-            ->listTableColumns('sys_file_reference');
+            ->getSchemaInformation()
+            ->introspectTable('sys_file_reference')
+            ->getColumns();
         foreach ($columns as $column) {
             if ($column->getName() === $field) {
                 $fieldExists = true;
@@ -268,5 +262,11 @@ class FileReferenceRequiredFieldsHook
             'sys_file',
             $fileId
         ) ?? [];
+    }
+
+    private function getLanguageService(): LanguageService
+    {
+        return $this->languageServiceFactory
+            ->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
     }
 }

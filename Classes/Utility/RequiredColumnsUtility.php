@@ -80,7 +80,7 @@ final class RequiredColumnsUtility
     {
         self::loadTCA();
         if (!array_key_exists($columnName, self::$registeredColumnsInTCA)) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 sprintf('Column "%s" not registered in TCA', $columnName),
                 1681395576121
             );
