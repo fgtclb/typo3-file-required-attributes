@@ -1,0 +1,34 @@
+name: tests core 13
+
+on:
+  pull_request:
+
+jobs:
+  code-quality:
+    name: "code quality with core v13"
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '8.2']
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+
+      - name: "Prepare dependencies for TYPO3 v13"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s composer -- require typo3/cms-core:^13.4"
+
+      - name: "Run PHP lint"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s lintPhp"
+
+      - name: "Validate CGL"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s cgl"
+
+      - name: "Ensure UTF-8 files do not contain BOM"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s checkBom"
+
+      - name: "Find duplicate exception codes"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s checkExceptionCodes"
+
+      - name: "Run PHPStan"
+        run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s phpstan"
