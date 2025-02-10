@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Utility;
 
-use RuntimeException;
+use FGTCLB\FileRequiredAttributes\Exception\ColumnNotRegisteredException;
+use FGTCLB\FileRequiredAttributes\Resource\FileType;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Resource\AbstractFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -18,7 +18,7 @@ final class RequiredColumnsUtility
 {
     /**
      * Holds as required registered fields
-     * @var array<int, array{columnName: string, fileTypes: int[]}>
+     * @var array<int, array{columnName: string, fileTypes: FileType::*[]}>
      */
     private static array $requiredColumns = [];
 
@@ -51,12 +51,12 @@ final class RequiredColumnsUtility
      * @var array<int, string>
      */
     public static array $fileTypeToPaletteMapping = [
-        AbstractFile::FILETYPE_UNKNOWN => 'basicoverlayPalette',
-        AbstractFile::FILETYPE_TEXT => 'basicoverlayPalette',
-        AbstractFile::FILETYPE_IMAGE => 'imageoverlayPalette',
-        AbstractFile::FILETYPE_AUDIO => 'audioOverlayPalette',
-        AbstractFile::FILETYPE_VIDEO => 'videoOverlayPalette',
-        AbstractFile::FILETYPE_APPLICATION => 'basicoverlayPalette',
+        FileType::UNKNOWN => 'basicoverlayPalette',
+        FileType::TEXT => 'basicoverlayPalette',
+        FileType::IMAGE => 'imageoverlayPalette',
+        FileType::AUDIO => 'audioOverlayPalette',
+        FileType::VIDEO => 'videoOverlayPalette',
+        FileType::APPLICATION => 'basicoverlayPalette',
     ];
 
     /**
@@ -72,15 +72,16 @@ final class RequiredColumnsUtility
     /**
      * registers a metadata field as required.
      * For call in TCA/Overrides/sys_file_metadata.php
-     * @param int[] $fileTypes Require on fileTypes,
+     * @param FileType::*[] $fileTypes Require on fileTypes,
      * @see \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_*
-     * @@throws RuntimeException
+     * @see \TYPO3\CMS\Core\Resource\FileType
+     * @@throws ColumnNotRegisteredException
      */
     public static function register(string $columnName, array $fileTypes): void
     {
         self::loadTCA();
         if (!array_key_exists($columnName, self::$registeredColumnsInTCA)) {
-            throw new \RuntimeException(
+            throw new ColumnNotRegisteredException(
                 sprintf('Column "%s" not registered in TCA', $columnName),
                 1681395576121
             );
@@ -96,7 +97,7 @@ final class RequiredColumnsUtility
     }
 
     /**
-     * @return array<int, array{columnName: string, fileTypes: int[]}>
+     * @return array<int, array{columnName: string, fileTypes: FileType::*[]}>
      */
     public static function getRequiredColumns(): array
     {

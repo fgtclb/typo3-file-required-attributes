@@ -7,7 +7,6 @@ namespace FGTCLB\FileRequiredAttributes\EventListener;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class TcaLoadedEvent
 {
