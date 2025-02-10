@@ -1,0 +1,17 @@
+{
+  "name": "fgtclb/test-extension",
+  "type": "typo3-cms-extension",
+  "require": {
+    "fgtclb/file-required-attributes": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "FGTCLB\\TestExtension\\": "Classes/"
+    }
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "test_extension"
+    }
+  }
+}

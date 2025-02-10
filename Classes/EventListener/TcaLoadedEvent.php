@@ -98,12 +98,11 @@ final class TcaLoadedEvent
         array $loadedTca,
         array $fileTypes
     ): array {
-        $virtualColumn = 'virtual_' . $columnName;
         $virtualColumnConfig = [
             'label' => $originalColumn['label'],
-            'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.virtual.description',
+            'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
             'config' => [
-                'type' => 'user',
+                'type' => 'none',
                 'renderType' => 'fileRequiredAttributeShow',
                 'parameters' => [
                     'originalField' => $columnName,
@@ -111,47 +110,32 @@ final class TcaLoadedEvent
                 ],
             ],
         ];
-        $loadedTca['sys_file_reference']['columns'][$virtualColumn] = $virtualColumnConfig;
-        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($virtualColumn, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
+        $loadedTca['sys_file_reference']['columns'][$columnName] = $virtualColumnConfig;
+        $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
         // add override column, if set
-        if (self::$overrideReferencePossible) {
-            $additionalConfig = [
-                'l10n_display' => 'defaultAsReadonly',
-                'description' => 'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.description',
-            ];
-            $config = match (true) {
-                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
-                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn),
-                default => [],
-            };
+//        if (self::$overrideReferencePossible) {
+            // @todo change behavior, if override could be done, add override basics
+            //            $additionalConfig = [
+            //                'l10n_display' => 'defaultAsReadonly',
+            //                'description' => '',
+            //            ];
+            //            $config = match (true) {
+            //                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$overrideMethodNeeded) => $this->addOverrideMethod($columnName, $originalColumn),
+            //                in_array($originalColumn['config']['type'], RequiredColumnsUtility::$requiredSetColumns) => $this->addOverridePlaceholder($columnName, $originalColumn),
+            //                default => [],
+            //            };
+            //
+            //            $additionalConfig['config'] = $config;
+            //            $newColumn = $originalColumn;
+            //            ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
+            //            $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
+            //            $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
 
-            $additionalConfig['config'] = $config;
-            $newColumn = $originalColumn;
-            ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
-            $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
-            $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
-
-        }
+//        }
 
         // add linebreak for better UX
         $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette('--linebreak--', $fileTypes, $loadedTca['sys_file_reference']['palettes']);
         return $loadedTca;
-    }
-
-    private function addOverrideMethod(string $columnName, array $originalColumn): array
-    {
-        return [];
-    }
-
-    private function addOverridePlaceholder(string $columnName, array $originalColumn): array
-    {
-        $config = [
-            'mode' => 'useOrOverridePlaceholder',
-            'placeholder' => sprintf('__row|uid_local|metadata|%s', $columnName),
-            'default' => null,
-        ];
-        $config['nullable'] = true;
-        return $config;
     }
 
     /**
