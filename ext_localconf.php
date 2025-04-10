@@ -9,4 +9,7 @@
         'priority' => 40,
         'class' => \FGTCLB\FileRequiredAttributes\Form\Element\FileRequiredValueElement::class,
     ];
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton::class] = [
+        'className' => WebVision\FileRequiredAttributes\Template\Components\Buttons\LinkButton::class
+    ];
 })();
