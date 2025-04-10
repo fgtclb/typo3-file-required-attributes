@@ -39,7 +39,7 @@ final class FileListActionsEvent
         if ($missing) {
             $actionItems = $event->getActionItems();
             if (array_key_exists('metadata', $actionItems)) {
-                $actionItems['metadata'] = str_replace('btn-default', 'btn-danger', $actionItems['metadata']);
+                $actionItems['metadata']?->setClasses('required-attributes-missing');
                 $event->setActionItems($actionItems);
             }
             $languageService = $this->languageServiceFactory->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
