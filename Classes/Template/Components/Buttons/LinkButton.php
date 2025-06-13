@@ -13,7 +13,7 @@
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace WebVision\FileRequiredAttributes\Template\Components\Buttons;
+namespace FGTCLB\FileRequiredAttributes\Template\Components\Buttons;
 
 /**
  * LinkButton
