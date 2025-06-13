@@ -5,7 +5,7 @@
     "license": [
         "GPL-3.0-or-later"
     ],
-    "author": [
+    "authors": [
         {
             "name": "Web-Vision",
             "email": "hello@web-vision.de"
@@ -35,6 +35,9 @@
             "ignore-as-root": false,
             "web-dir": ".Build/Web",
             "app-dir": ".Build"
+        },
+        "branch-alias": {
+            "dev-main": "2.x.x-dev"
         }
     },
     "config": {

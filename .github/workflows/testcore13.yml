@@ -13,7 +13,7 @@ jobs:
         php-version: [ '8.2']
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Prepare dependencies for TYPO3 v13"
         run: "Build/Scripts/runTests.sh -t 13 -p ${{ matrix.php-version }} -s composer -- require typo3/cms-core:^13.4"
