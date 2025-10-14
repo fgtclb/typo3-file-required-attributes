@@ -241,7 +241,7 @@ final class FileReferenceRequiredFieldsHook
         $fieldExists = false;
         $columns = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable('sys_file_reference')
-            ->getSchemaInformation()
+            ->createSchemaManager()
             ->introspectTable('sys_file_reference')
             ->getColumns();
         foreach ($columns as $column) {
