@@ -46,11 +46,11 @@ final class FileListActionsEvent
             $flashMessage = GeneralUtility::makeInstance(
                 FlashMessage::class,
                 $languageService->sL(
-                    'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.body'
+                    'file_required_attributes.be:sys_file_metadata.notSet.body'
                 ),
                 sprintf(
                     $languageService->sL(
-                        'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.header'
+                        'file_required_attributes.be:sys_file_metadata.notSet.header'
                     ),
                     $file->getName(),
                 ),
