@@ -139,11 +139,19 @@ final class TcaLoadedEvent
         return $loadedTca;
     }
 
+    /**
+     * @param array<string, mixed> $originalColumn
+     * @return array<string, mixed>
+     */
     private function addOverrideMethod(string $columnName, array $originalColumn): array
     {
         return [];
     }
 
+    /**
+     * @param array<string, mixed> $originalColumn
+     * @return array<string, mixed>
+     */
     private function addOverridePlaceholder(string $columnName, array $originalColumn): array
     {
         $config = [

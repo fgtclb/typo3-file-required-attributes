@@ -264,21 +264,9 @@ final class FileReferenceRequiredFieldsHook
      */
     private function getSysFileReferenceFieldNames(): array
     {
-        $schemaInformation = GeneralUtility::makeInstance(ConnectionPool::class)
+        return GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable('sys_file_reference')
-            ->getSchemaInformation();
-        // TYPO3 v13.4.19 and newer
-        if (method_exists($schemaInformation, 'listTableColumnNames')) {
-            return $schemaInformation->listTableColumnNames('sys_file_reference');
-        } elseif (method_exists($schemaInformation, 'introspectTable')) {
-            // Before TYPO3 v13.4.19
-            $columnNames = [];
-            $columns = $schemaInformation->introspectTable('sys_file_reference')->getColumns();
-            foreach ($columns as $column) {
-                $columnNames[] = trim((string) $column->getName(), '"`');
-            }
-            return $columnNames;
-        }
-        return [];
+            ->getSchemaInformation()
+            ->listTableColumnNames('sys_file_reference');
     }
 }

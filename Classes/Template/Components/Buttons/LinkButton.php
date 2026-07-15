@@ -45,7 +45,7 @@ final class LinkButton extends \TYPO3\CMS\Backend\Template\Components\Buttons\Li
      * @return bool
      */
     #[Override]
-    public function isValid()
+    public function isValid(): bool
     {
         return trim($this->getHref()) !== ''
         && trim($this->getTitle()) !== ''
@@ -59,7 +59,7 @@ final class LinkButton extends \TYPO3\CMS\Backend\Template\Components\Buttons\Li
      * @return string
      */
     #[Override]
-    public function render()
+    public function render(): string
     {
         $html = parent::render();
 
