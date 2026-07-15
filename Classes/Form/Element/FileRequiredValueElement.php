@@ -52,10 +52,10 @@ final class FileRequiredValueElement extends AbstractFormElement
         $value = $metaData[$originalField] ?? '[empty]';
 
         // if radio, select, check, get value from language
-        if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)) {
-            if (method_exists(self::class, $originalFieldConfig['config']['type'])) {
+        if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)
+            && method_exists(self::class, $originalFieldConfig['config']['type'])) {
+
                 $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
-            }
         }
 
         $html = [];

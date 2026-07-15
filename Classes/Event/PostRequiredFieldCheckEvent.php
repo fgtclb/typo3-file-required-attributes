@@ -7,25 +7,11 @@ namespace FGTCLB\FileRequiredAttributes\Event;
 final class PostRequiredFieldCheckEvent
 {
     /**
-     * @var array<string, mixed>
-     */
-    private array $data;
-
-    /**
-     * @var array<int, string>
-     */
-    private array $requiredColumns;
-
-    /**
      * @param array<string, mixed> $data
      * @param array<int, string> $requiredColumns
      */
-    public function __construct(
-        array $data,
-        array $requiredColumns
-    ) {
-        $this->data = $data;
-        $this->requiredColumns = $requiredColumns;
+    public function __construct(private readonly array $data, private array $requiredColumns)
+    {
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Utility;
 
+use TYPO3\CMS\Core\Resource\FileType;
 use RuntimeException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
@@ -51,12 +52,12 @@ final class RequiredColumnsUtility
      * @var array<int, string>
      */
     public static array $fileTypeToPaletteMapping = [
-        AbstractFile::FILETYPE_UNKNOWN => 'basicoverlayPalette',
-        AbstractFile::FILETYPE_TEXT => 'basicoverlayPalette',
-        AbstractFile::FILETYPE_IMAGE => 'imageoverlayPalette',
-        AbstractFile::FILETYPE_AUDIO => 'audioOverlayPalette',
-        AbstractFile::FILETYPE_VIDEO => 'videoOverlayPalette',
-        AbstractFile::FILETYPE_APPLICATION => 'basicoverlayPalette',
+        FileType::UNKNOWN->value => 'basicoverlayPalette',
+        FileType::TEXT->value => 'basicoverlayPalette',
+        FileType::IMAGE->value => 'imageoverlayPalette',
+        FileType::AUDIO->value => 'audioOverlayPalette',
+        FileType::VIDEO->value => 'videoOverlayPalette',
+        FileType::APPLICATION->value => 'basicoverlayPalette',
     ];
 
     /**
@@ -80,7 +81,7 @@ final class RequiredColumnsUtility
     {
         self::loadTCA();
         if (!array_key_exists($columnName, self::$registeredColumnsInTCA)) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf('Column "%s" not registered in TCA', $columnName),
                 1681395576121
             );
@@ -113,7 +114,7 @@ final class RequiredColumnsUtility
 
     private static function loadTCA(): void
     {
-        if (!empty(self::$registeredColumnsInTCA)) {
+        if (self::$registeredColumnsInTCA !== []) {
             return;
         }
         $metaDataTCA = $GLOBALS['TCA']['sys_file_metadata'];

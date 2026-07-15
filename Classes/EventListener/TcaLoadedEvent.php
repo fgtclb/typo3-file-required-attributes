@@ -28,7 +28,7 @@ final class TcaLoadedEvent
         $loadedTca = $event->getTca();
         $sysFileMetadata = $loadedTca[$table];
         $columns = $sysFileMetadata['columns'];
-        if (count($requiredColumns) > 0) {
+        if ($requiredColumns !== []) {
             foreach ($loadedTca['sys_file_reference']['palettes'] as $paletteKey => $palette) {
                 if (array_key_exists('isHiddenPalette', $palette)) {
                     continue;
@@ -170,7 +170,7 @@ final class TcaLoadedEvent
 
         $palettesToAdd = array_filter($palettesToAdd);
 
-        if (empty($palettesToAdd)) {
+        if ($palettesToAdd === []) {
             return $palettes;
         }
 

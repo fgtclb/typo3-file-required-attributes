@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Hooks;
 
+use InvalidArgumentException;
 use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Event\PostRequiredFieldCheckEvent;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
@@ -57,7 +58,7 @@ final class FileReferenceRequiredFieldsHook
                 } else {
                     [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
                     if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
-                        throw new \InvalidArgumentException(
+                        throw new InvalidArgumentException(
                             sprintf('Given file reference "%s" not usable', $reference['uid_local']),
                             1684163297042
                         );
@@ -138,7 +139,7 @@ final class FileReferenceRequiredFieldsHook
             }
 
             if (
-                count($missingColumns) > 0
+                $missingColumns !== []
                 && (
                     !isset($dataHandler->datamap['sys_file_reference'][$id]['hidden'])
                     || $dataHandler->datamap['sys_file_reference'][$id]['hidden'] == 0
@@ -166,13 +167,13 @@ final class FileReferenceRequiredFieldsHook
                         FlashMessage::class,
                         sprintf(
                             $this->getLanguageService()->sL(
-                                'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.body'
+                                'file_required_attributes.be:sys_file_reference.global.notSet.body'
                             ),
                             $sysFile['name'],
                             implode('", "', $missingColumnsLabels)
                         ),
                         $this->getLanguageService()->sL(
-                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.header'
+                            'file_required_attributes.be:sys_file_reference.global.notSet.header'
                         ),
                         ContextualFeedbackSeverity::WARNING,
                         true
@@ -184,7 +185,7 @@ final class FileReferenceRequiredFieldsHook
                 }
             }
         }
-        if (count($data['sys_file_metadata']) > 0) {
+        if ($data['sys_file_metadata'] !== []) {
             ArrayUtility::mergeRecursiveWithOverrule($dataHandler->datamap, $data);
         }
     }
@@ -269,12 +270,12 @@ final class FileReferenceRequiredFieldsHook
         // TYPO3 v13.4.19 and newer
         if (method_exists($schemaInformation, 'listTableColumnNames')) {
             return $schemaInformation->listTableColumnNames('sys_file_reference');
-        } else if (method_exists($schemaInformation, 'introspectTable')) {
+        } elseif (method_exists($schemaInformation, 'introspectTable')) {
             // Before TYPO3 v13.4.19
             $columnNames = [];
             $columns = $schemaInformation->introspectTable('sys_file_reference')->getColumns();
             foreach ($columns as $column) {
-                $columnNames[] = trim($column->getName(), '"`');
+                $columnNames[] = trim((string) $column->getName(), '"`');
             }
             return $columnNames;
         }
