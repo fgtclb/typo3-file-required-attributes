@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace FGTCLB\FileRequiredAttributes\EventListener;
 
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
+use TYPO3\CMS\Backend\Template\Components\ActionGroup;
+use TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -36,11 +38,11 @@ final class FileListActionsEvent
                 $missing = true;
             }
         }
-        if ($missing) {
-            $actionItems = $event->getActionItems();
-            if (array_key_exists('metadata', $actionItems)) {
-                $actionItems['metadata']?->setClasses('required-attributes-missing');
-                $event->setActionItems($actionItems);
+        if ($missing && $event->hasAction('metadata', ActionGroup::primary)) {
+            $metadataAction = $event->getAction('metadata', ActionGroup::primary);
+            if ($metadataAction instanceof LinkButton) {
+                $metadataAction->setClasses('required-attributes-missing');
+                $event->setAction($metadataAction, 'metadata', ActionGroup::primary);
             }
             $languageService = $this->languageServiceFactory->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
             $flashMessage = GeneralUtility::makeInstance(

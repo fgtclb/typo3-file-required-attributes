@@ -1,4 +1,1 @@
 <?php
-
-(static function (): void {
-})();
