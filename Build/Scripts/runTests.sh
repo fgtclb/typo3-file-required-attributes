@@ -522,12 +522,20 @@ case ${TEST_SUITE} in
         ;;
     composer)
         COMMAND=(composer "$@")
-        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-command-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
+        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-command-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_POLICY_ADVISORIES_BLOCK=false -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
         SUITE_EXIT_CODE=$?
         ;;
     composerUpdate)
+        # Composer 2.10 blocks advisory-affected versions from the resolver pool by
+        # default. TYPO3 versions past free support are permanently advisory-affected,
+        # so they drop out entirely and leave only releases requiring a newer PHP -
+        # surfacing as a misleading "your php version does not satisfy that
+        # requirement" error instead of anything mentioning advisories. Testing the
+        # versions this extension supports requires installing them. Kept in the
+        # harness on purpose: composer.json would disable the check for consumers of
+        # this package too.
         COMMAND=(Build/Scripts/composer-for-core-version.sh ${CORE_VERSION})
-        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-command-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
+        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-command-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_POLICY_ADVISORIES_BLOCK=false -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
         SUITE_EXIT_CODE=$?
         ;;
     functional)
