@@ -5,6 +5,7 @@
 .ddev/docker-compose.tempfs.yaml
 composer.lock
 composer.json.testing
+composer.json.orig
 *.cache
 var
 .php-cs-fixer.cache

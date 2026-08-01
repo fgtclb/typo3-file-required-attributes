@@ -546,17 +546,25 @@ case ${TEST_SUITE} in
         SUITE_EXIT_CODE=$?
         ;;
     composerUpdate)
-        # Composer 2.10 blocks advisory-affected versions from the resolver pool by
-        # default. TYPO3 versions past free support are permanently advisory-affected,
-        # so they drop out entirely and leave only releases requiring a newer PHP -
-        # surfacing as a misleading "your php version does not satisfy that
-        # requirement" error instead of anything mentioning advisories. Testing the
-        # versions this extension supports requires installing them. Kept in the
-        # harness on purpose: composer.json would disable the check for consumers of
-        # this package too.
-        COMMAND=(Build/Scripts/composer-for-core-version.sh ${CORE_VERSION})
-        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-command-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_POLICY_ADVISORIES_BLOCK=false -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
+        # backup current composer.json
+        cp -Rf composer.json composer.json.orig
+        # The vendor tree must go, not just the lock file: Composer boots plugins from
+        # it before resolving, so a leftover tree from another "-t" runs the previous
+        # core's "typo3/class-alias-loader" over the newly installed one. ".Build/.cache"
+        # is kept so the reinstall is served from the local Composer cache.
+        rm -rf .Build/vendor .Build/bin composer.lock
+        # "COMPOSER_POLICY_ADVISORIES_BLOCK": Composer 2.10 blocks advisory-affected
+        # versions from the resolver pool by default. TYPO3 versions past free support
+        # are permanently advisory-affected, so they drop out entirely and leave only
+        # releases requiring a newer PHP - surfacing as a misleading "your php version
+        # does not satisfy that requirement" error instead of anything mentioning
+        # advisories. Testing the versions this extension supports requires installing
+        # them. Kept in the harness on purpose: composer.json would disable the check
+        # for consumers of this package too.
+        ${CONTAINER_BIN} run ${CONTAINER_SIMPLE_PARAMS} --name composer-update-${CORE_VERSION}-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_POLICY_ADVISORIES_BLOCK=false -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} composer require --dev "typo3/minimal":"^${CORE_VERSION}"
         SUITE_EXIT_CODE=$?
+        # restore composer json
+        cp -Rf composer.json.orig composer.json
         ;;
     functional)
         PHPUNIT_CONFIG_FILE="Build/phpunit/FunctionalTests.xml"
