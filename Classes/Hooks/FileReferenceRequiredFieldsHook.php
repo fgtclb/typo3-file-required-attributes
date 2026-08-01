@@ -269,7 +269,8 @@ final class FileReferenceRequiredFieldsHook
         // TYPO3 v13.4.19 and newer
         if (method_exists($schemaInformation, 'listTableColumnNames')) {
             return $schemaInformation->listTableColumnNames('sys_file_reference');
-        } else if (method_exists($schemaInformation, 'introspectTable')) {
+        }
+        if (method_exists($schemaInformation, 'introspectTable')) {
             // Before TYPO3 v13.4.19
             $columnNames = [];
             $columns = $schemaInformation->introspectTable('sys_file_reference')->getColumns();
