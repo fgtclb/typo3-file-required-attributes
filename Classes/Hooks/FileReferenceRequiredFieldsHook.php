@@ -6,6 +6,7 @@ namespace FGTCLB\FileRequiredAttributes\Hooks;
 
 use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Event\PostRequiredFieldCheckEvent;
+use FGTCLB\FileRequiredAttributes\Exception\InvalidFileReferenceException;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Core\Environment;
@@ -59,7 +60,7 @@ final class FileReferenceRequiredFieldsHook
                 } else {
                     [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
                     if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
-                        throw new \InvalidArgumentException(
+                        throw new InvalidFileReferenceException(
                             sprintf('Given file reference "%s" not usable', $reference['uid_local']),
                             1684163297042
                         );
