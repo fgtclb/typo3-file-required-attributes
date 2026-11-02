@@ -76,6 +76,7 @@ or check column also counts as missing on `0`, the value of its "not set" item.
 
 | Version | Supported          | End of Support |
 |---------|--------------------|----------------|
+| 3.x     | :white_check_mark: | 2029-06-30     |
 | 2.x     | :white_check_mark: | 2027-12-31     |
 | < 2.0   | :x:                | support ended  |
 
