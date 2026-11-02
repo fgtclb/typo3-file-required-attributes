@@ -153,6 +153,7 @@ Options:
             - cgl: cgl test and fix all php files
             - checkBom: check UTF-8 files do not contain BOM
             - checkExceptionCodes: Check for duplicate exception codes
+            - checkIntegrityXliff: check .xlf files for integrity
             - checkRst: test .rst files for integrity
             - checkTestMethodsPrefix: check tests methods do not start with "test"
             - clean: clean up build, cache and testing related files and folders
@@ -509,6 +510,11 @@ case ${TEST_SUITE} in
     checkBom)
         COMMAND="Build/Scripts/checkUtf8Bom.sh"
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name cgl-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/sh -c "${COMMAND}"
+        SUITE_EXIT_CODE=$?
+        ;;
+    checkIntegrityXliff)
+        COMMAND="php -dxdebug.mode=off Build/Scripts/checkIntegrityXliff.php"
+        ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name check-xliff-${SUFFIX} -e COMPOSER_CACHE_DIR=.Build/.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/sh -c "${COMMAND}"
         SUITE_EXIT_CODE=$?
         ;;
     checkRst)
