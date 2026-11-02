@@ -33,7 +33,7 @@ final class FileListActionsEvent
         $required = $requiredMatrix[$file->getType()] ?? [];
         $missing = false;
         foreach ($required as $column) {
-            if (!$meta->offsetExists($column) || empty($meta->offsetGet($column))) {
+            if (!$meta->offsetExists($column) || RequiredColumnsUtility::isValueMissing($column, $meta->offsetGet($column))) {
                 $missing = true;
             }
         }

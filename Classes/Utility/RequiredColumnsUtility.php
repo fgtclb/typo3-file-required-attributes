@@ -109,6 +109,23 @@ final class RequiredColumnsUtility
         return $GLOBALS['TCA']['sys_file_metadata']['ctrl']['required_attributes'] ?? [];
     }
 
+    /**
+     * A required column is missing when it holds no more than whitespace. A radio, select or check
+     * column is also missing on `0`, the value of its "not set" item.
+     */
+    public static function isValueMissing(string $columnName, mixed $value): bool
+    {
+        if ($value === null || is_array($value)) {
+            return true;
+        }
+        $value = trim((string)$value);
+        if ($value === '') {
+            return true;
+        }
+        $type = $GLOBALS['TCA']['sys_file_metadata']['columns'][$columnName]['config']['type'] ?? '';
+        return $value === '0' && in_array($type, self::$overrideMethodNeeded, true);
+    }
+
     private static function loadTCA(): void
     {
         if (self::$registeredColumnsInTCA !== []) {
