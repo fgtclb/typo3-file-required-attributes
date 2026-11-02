@@ -17,7 +17,7 @@ is made globally, is added to the field description.
 
 | Extension | TYPO3                   | PHP       |
 |-----------|-------------------------|-----------|
-| 3.x       | 13.4 (>= 13.4.19), 14.3 | 8.2 - 8.4 |
+| 3.x       | 13.4 (>= 13.4.19), 14.3 | 8.2 - 8.5 |
 | 2.x       | 12.4, 13.4              | 8.1 - 8.4 |
 
 ## Installation
