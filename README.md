@@ -13,6 +13,13 @@ If attribute only appears in metadata, a virtual field is added to reference,
 enforcing the ability to update metadata from reference. A warning, this change
 is made globally, is added to the field description.
 
+## Compatibility
+
+| Extension | TYPO3                   | PHP       |
+|-----------|-------------------------|-----------|
+| 3.x       | 13.4 (>= 13.4.19), 14.3 | 8.2 - 8.4 |
+| 2.x       | 12.4, 13.4              | 8.1 - 8.4 |
+
 ## Installation
 
 ```shell
@@ -33,27 +40,27 @@ declare(strict_types=1);
     \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
         'copyright',
         [
-            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            \TYPO3\CMS\Core\Resource\FileType::IMAGE->value,
             // ...
         ]
     );
     \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
         'alternative',
         [
-            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            \TYPO3\CMS\Core\Resource\FileType::IMAGE->value,
             // ...
         ]
     );
     \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
         'title',
         [
-            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            \TYPO3\CMS\Core\Resource\FileType::IMAGE->value,
         ]
     );
     \FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility::register(
         'description',
         [
-            \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_IMAGE,
+            \TYPO3\CMS\Core\Resource\FileType::IMAGE->value,
         ]
     );
 })();
@@ -61,6 +68,9 @@ declare(strict_types=1);
 
 This extension will handle all required steps by itself, you don't need to
 handle with TCA.
+
+A required column counts as missing when it is empty or holds only whitespace. A required radio, select
+or check column also counts as missing on `0`, the value of its "not set" item.
 
 ## Supported Versions
 
