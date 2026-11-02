@@ -69,7 +69,7 @@ final class FileRequiredValueElement extends AbstractFormElement
         $html[] =   '<div class="form-wizards-wrap">';
         $html[] =      '<div class="form-wizards-element">';
         $html[] =         '<div class="form-control-wrap">';
-        $html[] =            sprintf('<p>%s</p>', $value);
+        $html[] =            sprintf('<p>%s</p>', htmlspecialchars($value));
         $html[] =         '</div>';
         $html[] =      '</div>';
         $html[] =   '</div>';
