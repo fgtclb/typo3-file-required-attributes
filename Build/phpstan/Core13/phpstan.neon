@@ -4,16 +4,31 @@ includes:
 
 parameters:
   # Use local .cache dir instead of /tmp
-  tmpDir: ../../../.cache/phpstan
+  tmpDir: ../../../.cache/phpstan/Core13
 
   level: 8
 
   paths:
     - ../../../Classes/
+    - ../../../Configuration/
+    - ../../../Core13/
     - ../../../Tests/
+    - ../../../ext_emconf.php
+    - ../../../ext_localconf.php
 
   excludePaths:
     - ../../../.Build/*
+    - ../../../Core14/*
+    - ../../../Tests/Functional/EventListener/FileListActionsEventCore14Test.php
+
+  ignoreErrors:
+    - '#Variable \$_EXTKEY might not be defined\.#'
+    # AbstractButton::getIcon() is documented as never null on v13 but returns null without an
+    # icon; v14 types it "?Icon", which the null check is written for.
+    -
+      identifier: notIdentical.alwaysTrue
+      path: ../../../Classes/Template/Components/Buttons/LinkButton.php
+      count: 1
 
   typo3:
     contextApiGetAspectMapping:

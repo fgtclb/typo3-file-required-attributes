@@ -14,10 +14,8 @@ declare(strict_types=1);
  *
  * The TYPO3 project - inspiring people to share!
  */
-namespace FGTCLB\FileRequiredAttributes\Template\Components\Buttons;
 
-use Override;
-use TYPO3\CMS\Core\Imaging\Icon;
+namespace FGTCLB\FileRequiredAttributes\Template\Components\Buttons;
 
 /**
  * LinkButton
@@ -44,13 +42,13 @@ final class LinkButton extends \TYPO3\CMS\Backend\Template\Components\Buttons\Li
      *
      * @return bool
      */
-    #[Override]
+    #[\Override]
     public function isValid(): bool
     {
         return trim($this->getHref()) !== ''
-        && trim($this->getTitle()) !== ''
-        && $this->getType() === self::class
-        && $this->getIcon() instanceof Icon;
+            && trim($this->getTitle()) !== ''
+            && $this->getType() === self::class
+            && $this->getIcon() !== null;
     }
 
     /**
@@ -58,7 +56,7 @@ final class LinkButton extends \TYPO3\CMS\Backend\Template\Components\Buttons\Li
      *
      * @return string
      */
-    #[Override]
+    #[\Override]
     public function render(): string
     {
         $html = parent::render();

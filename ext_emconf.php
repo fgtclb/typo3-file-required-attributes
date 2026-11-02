@@ -4,14 +4,14 @@ $EM_CONF[$_EXTKEY] = [
     'title' => 'FGTCLB File required attributes',
     'description' => 'Marks metadata fields required and disables file references if required fields are missing',
     'category' => 'fe,be',
-    'state' => 'beta',
+    'state' => 'stable',
     'version' => '3.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '14.0.2-14.4.99',
-            'backend' => '14.0.0-14.99.99',
-            'filelist' => '14.0.0-14.99.99',
-            'filemetadata' => '14.0.0-14.99.99',
+            'typo3' => '13.4.19-14.3.99',
+            'backend' => '13.4.19-14.3.99',
+            'filelist' => '13.4.19-14.3.99',
+            'filemetadata' => '13.4.19-14.3.99',
         ],
     ],
 ];

@@ -4,16 +4,25 @@ includes:
 
 parameters:
   # Use local .cache dir instead of /tmp
-  tmpDir: ../../../.cache/phpstan
+  tmpDir: ../../../.cache/phpstan/Core14
 
   level: 8
 
   paths:
     - ../../../Classes/
+    - ../../../Configuration/
+    - ../../../Core14/
     - ../../../Tests/
+    - ../../../ext_emconf.php
+    - ../../../ext_localconf.php
 
   excludePaths:
     - ../../../.Build/*
+    - ../../../Core13/*
+    - ../../../Tests/Functional/EventListener/FileListActionsEventCore13Test.php
+
+  ignoreErrors:
+    - '#Variable \$_EXTKEY might not be defined\.#'
 
   typo3:
     contextApiGetAspectMapping:

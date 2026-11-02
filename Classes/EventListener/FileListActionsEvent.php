@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace FGTCLB\FileRequiredAttributes\EventListener;
 
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
-use TYPO3\CMS\Backend\Template\Components\ActionGroup;
-use TYPO3\CMS\Backend\Template\Components\Buttons\LinkButton;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -20,6 +18,7 @@ final class FileListActionsEvent
     public function __construct(
         private readonly LanguageServiceFactory $languageServiceFactory,
         private readonly FlashMessageService $flashMessageService,
+        private readonly MetadataActionHighlighterInterface $metadataActionHighlighter,
     ) {}
 
     public function __invoke(ProcessFileListActionsEvent $event): void
@@ -38,21 +37,17 @@ final class FileListActionsEvent
                 $missing = true;
             }
         }
-        if ($missing && $event->hasAction('metadata', ActionGroup::primary)) {
-            $metadataAction = $event->getAction('metadata', ActionGroup::primary);
-            if ($metadataAction instanceof LinkButton) {
-                $metadataAction->setClasses('required-attributes-missing');
-                $event->setAction($metadataAction, 'metadata', ActionGroup::primary);
-            }
+        if ($missing) {
+            $this->metadataActionHighlighter->highlightMetadataAction($event);
             $languageService = $this->languageServiceFactory->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
             $flashMessage = GeneralUtility::makeInstance(
                 FlashMessage::class,
                 $languageService->sL(
-                    'file_required_attributes.be:sys_file_metadata.notSet.body'
+                    'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.body'
                 ),
                 sprintf(
                     $languageService->sL(
-                        'file_required_attributes.be:sys_file_metadata.notSet.header'
+                        'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_metadata.notSet.header'
                     ),
                     $file->getName(),
                 ),
