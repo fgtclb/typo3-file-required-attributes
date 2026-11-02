@@ -55,7 +55,7 @@ final class FileRequiredValueElement extends AbstractFormElement
         if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)
             && method_exists(self::class, $originalFieldConfig['config']['type'])) {
 
-                $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
+            $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
         }
 
         $html = [];

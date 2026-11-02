@@ -52,6 +52,8 @@ return (new Config())
             ->in([
                 __DIR__ . '/../../Classes',
                 __DIR__ . '/../../Configuration',
+                __DIR__ . '/../../Core13',
+                __DIR__ . '/../../Core14',
                 __DIR__ . '/../../Tests',
             ])
     )

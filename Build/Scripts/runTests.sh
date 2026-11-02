@@ -222,18 +222,18 @@ Options:
             - 15    maintained until 2027-11-11
             - 16    maintained until 2028-11-09
 
-    -t <12|13>
-        Only with -s composerInstall|composerInstallMin|composerInstallMax
+    -t <13|14>
+        Only with -s composerUpdate|phpstan|phpstanGenerateBaseline
         Specifies the TYPO3 CORE Version to be used
-            - 12: (default) use TYPO3 v12
-            - 12: use TYPO3 v13
+            - 13: (default) use TYPO3 v13
+            - 14: use TYPO3 v14
 
-    -p <8.1|8.2|8.3|8.4>
+    -p <8.2|8.3|8.4|8.5>
         Specifies the PHP minor version to be used
-            - 8.1: use PHP 8.1
             - 8.2: (default) use PHP 8.2
             - 8.3: use PHP 8.3
             - 8.4: use PHP 8.4
+            - 8.5: use PHP 8.5
 
     -x
         Only with -s functional|functionalDeprecated|unit|unitDeprecated|unitRandom|acceptance|acceptanceInstall
@@ -300,7 +300,7 @@ fi
 
 # Option defaults
 TEST_SUITE="unit"
-CORE_VERSION="12"
+CORE_VERSION="13"
 DBMS="sqlite"
 PHP_VERSION="8.2"
 PHP_XDEBUG_ON=0
@@ -340,13 +340,13 @@ while getopts "a:b:s:d:i:p:t:xy:o:nhu" OPT; do
             ;;
         p)
             PHP_VERSION=${OPTARG}
-            if ! [[ ${PHP_VERSION} =~ ^(8.1|8.2|8.3|8.4)$ ]]; then
+            if ! [[ ${PHP_VERSION} =~ ^(8.2|8.3|8.4|8.5)$ ]]; then
                 INVALID_OPTIONS+=("p ${OPTARG}")
             fi
             ;;
         t)
             CORE_VERSION=${OPTARG}
-            if ! [[ ${CORE_VERSION} =~ ^(12|13)$ ]]; then
+            if ! [[ ${CORE_VERSION} =~ ^(13|14)$ ]]; then
                 INVALID_OPTIONS+=("t ${OPTARG}")
             fi
             ;;
@@ -392,7 +392,7 @@ fi
 
 handleDbmsOptions
 
-COMPOSER_ROOT_VERSION="5.x.x-dev"
+COMPOSER_ROOT_VERSION="3.x.x-dev"
 CONTAINER_INTERACTIVE="-it --init"
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)

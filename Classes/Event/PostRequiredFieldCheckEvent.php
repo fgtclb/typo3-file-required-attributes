@@ -10,9 +10,7 @@ final class PostRequiredFieldCheckEvent
      * @param array<string, mixed> $data
      * @param array<int, string> $requiredColumns
      */
-    public function __construct(private readonly array $data, private array $requiredColumns)
-    {
-    }
+    public function __construct(private readonly array $data, private array $requiredColumns) {}
 
     /**
      * @return array<string, mixed>

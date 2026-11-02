@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Utility;
 
-use TYPO3\CMS\Core\Resource\FileType;
-use RuntimeException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
-use TYPO3\CMS\Core\Resource\AbstractFile;
+use TYPO3\CMS\Core\Resource\FileType;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -73,15 +71,14 @@ final class RequiredColumnsUtility
     /**
      * registers a metadata field as required.
      * For call in TCA/Overrides/sys_file_metadata.php
-     * @param int[] $fileTypes Require on fileTypes,
-     * @see \TYPO3\CMS\Core\Resource\AbstractFile::FILETYPE_*
-     * @@throws RuntimeException
+     * @param int[] $fileTypes Require on fileTypes, the values of {@see FileType}
+     * @throws \RuntimeException
      */
     public static function register(string $columnName, array $fileTypes): void
     {
         self::loadTCA();
         if (!array_key_exists($columnName, self::$registeredColumnsInTCA)) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 sprintf('Column "%s" not registered in TCA', $columnName),
                 1681395576121
             );

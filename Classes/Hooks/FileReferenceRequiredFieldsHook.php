@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FGTCLB\FileRequiredAttributes\Hooks;
 
-use InvalidArgumentException;
 use Doctrine\DBAL\Driver\Exception;
 use FGTCLB\FileRequiredAttributes\Event\PostRequiredFieldCheckEvent;
 use FGTCLB\FileRequiredAttributes\Utility\RequiredColumnsUtility;
@@ -58,7 +57,7 @@ final class FileReferenceRequiredFieldsHook
                 } else {
                     [, $fileId] = BackendUtility::splitTable_Uid((string)$reference['uid_local']);
                     if (!MathUtility::canBeInterpretedAsInteger($fileId)) {
-                        throw new InvalidArgumentException(
+                        throw new \InvalidArgumentException(
                             sprintf('Given file reference "%s" not usable', $reference['uid_local']),
                             1684163297042
                         );
@@ -167,13 +166,13 @@ final class FileReferenceRequiredFieldsHook
                         FlashMessage::class,
                         sprintf(
                             $this->getLanguageService()->sL(
-                                'file_required_attributes.be:sys_file_reference.global.notSet.body'
+                                'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.body'
                             ),
                             $sysFile['name'],
                             implode('", "', $missingColumnsLabels)
                         ),
                         $this->getLanguageService()->sL(
-                            'file_required_attributes.be:sys_file_reference.global.notSet.header'
+                            'LLL:EXT:file_required_attributes/Resources/Private/Language/locallang_be.xlf:sys_file_reference.global.notSet.header'
                         ),
                         ContextualFeedbackSeverity::WARNING,
                         true

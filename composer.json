@@ -13,14 +13,16 @@
     ],
     "require": {
         "php": "^8.2 || ^8.3 || ^8.4",
-        "typo3/cms-backend": "^14.0",
-        "typo3/cms-core": "^14.0",
-        "typo3/cms-filelist": "^14.0",
-        "typo3/cms-filemetadata": "^14.0"
+        "typo3/cms-backend": "^13.4.19 || ^14.3",
+        "typo3/cms-core": "^13.4.19 || ^14.3",
+        "typo3/cms-filelist": "^13.4.19 || ^14.3",
+        "typo3/cms-filemetadata": "^13.4.19 || ^14.3"
     },
     "autoload": {
         "psr-4": {
-            "FGTCLB\\FileRequiredAttributes\\": "Classes/"
+            "FGTCLB\\FileRequiredAttributes\\": "Classes/",
+            "FGTCLB\\FileRequiredAttributes\\Core13\\": "Core13/",
+            "FGTCLB\\FileRequiredAttributes\\Core14\\": "Core14/"
         }
     },
     "autoload-dev": {
@@ -34,7 +36,11 @@
             "cms-package-dir": "{$vendor-dir}/typo3/cms",
             "ignore-as-root": false,
             "web-dir": ".Build/Web",
-            "app-dir": ".Build"
+            "app-dir": ".Build",
+            "version": "3.0.0",
+            "Package": {
+                "providesPackages": []
+            }
         },
         "branch-alias": {
             "dev-main": "3.x.x-dev"
