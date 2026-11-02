@@ -83,9 +83,15 @@ final class RequiredColumnsUtility
                 1681395576121
             );
         }
-        // Column already registered. Do nothing
-        if (in_array($columnName, self::$requiredColumns)) {
-            return;
+        // A column registered again, e.g. by a second extension or on every TCA rebuild, keeps one
+        // registration requiring it for the file types of all calls.
+        foreach (self::$requiredColumns as $index => $requiredColumn) {
+            if ($requiredColumn['columnName'] === $columnName) {
+                self::$requiredColumns[$index]['fileTypes'] = array_values(
+                    array_unique(array_merge($requiredColumn['fileTypes'], $fileTypes))
+                );
+                return;
+            }
         }
         self::$requiredColumns[] = [
             'columnName' => $columnName,
