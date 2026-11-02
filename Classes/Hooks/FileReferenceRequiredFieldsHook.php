@@ -248,8 +248,15 @@ final class FileReferenceRequiredFieldsHook
         return $reference ?: [];
     }
 
+    /**
+     * A column virtual fields add to the reference has a database column there too, but its value
+     * belongs to the metadata.
+     */
     private function isFieldPartOfReference(string $field): bool
     {
+        if (in_array($field, RequiredColumnsUtility::getGlobalColumnsFromTCA(), true)) {
+            return false;
+        }
         return in_array($field, $this->getSysFileReferenceFieldNames(), true);
     }
 

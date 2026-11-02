@@ -18,7 +18,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * With virtual fields enabled, a required metadata column also becomes an overridable column of the
- * file reference, so its value can be given on the reference itself.
+ * file reference, so its value can be given on the reference itself. That value is written to the
+ * metadata of the referenced file, although the core creates a database column on the reference too.
  */
 final class FileReferenceRequiredFieldsHookTest extends AbstractFunctionalTestCase
 {
@@ -139,7 +140,7 @@ final class FileReferenceRequiredFieldsHookTest extends AbstractFunctionalTestCa
     }
 
     #[Test]
-    public function copyrightGivenOnTheReferenceIsStoredOnTheReference(): void
+    public function copyrightGivenOnTheReferenceIsWrittenToTheMetadata(): void
     {
         $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
         $dataHandler->start(
@@ -159,9 +160,11 @@ final class FileReferenceRequiredFieldsHookTest extends AbstractFunctionalTestCa
         );
         $dataHandler->process_datamap();
 
+        self::assertSame([], $dataHandler->errorLog);
         $row = $this->fetchReference((int)$dataHandler->substNEWwithIDs['NEW1']);
-        self::assertSame('John Doe', $row['copyright']);
-        self::assertSame('', $this->fetchMetadata(1)['copyright']);
+        self::assertSame(0, (int)$row['hidden']);
+        self::assertSame('', (string)$row['copyright']);
+        self::assertSame('John Doe', $this->fetchMetadata(1)['copyright']);
     }
 
     #[Test]

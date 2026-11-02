@@ -43,6 +43,18 @@ final class TcaLoadedEventTest extends AbstractFunctionalTestCase
     }
 
     #[Test]
+    public function columnsOverridingTheMetadataValueAreListedInTheReferenceCtrl(): void
+    {
+        self::assertSame(
+            [
+                'copyright',
+                'right_of_use',
+            ],
+            $GLOBALS['TCA']['sys_file_reference']['ctrl']['required_attributes_global']
+        );
+    }
+
+    #[Test]
     public function referenceShowsTheMetadataValueInAVirtualColumn(): void
     {
         $column = $GLOBALS['TCA']['sys_file_reference']['columns']['virtual_copyright'];
