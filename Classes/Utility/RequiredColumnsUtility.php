@@ -117,6 +117,17 @@ final class RequiredColumnsUtility
     }
 
     /**
+     * The required columns the file reference edits on the metadata of the referenced file, as virtual
+     * fields add them to the reference.
+     *
+     * @return string[]
+     */
+    public static function getGlobalColumnsFromTCA(): array
+    {
+        return $GLOBALS['TCA']['sys_file_reference']['ctrl']['required_attributes_global'] ?? [];
+    }
+
+    /**
      * A required column is missing when it holds no more than whitespace. A radio, select or check
      * column is also missing on `0`, the value of its "not set" item.
      */

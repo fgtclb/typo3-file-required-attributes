@@ -129,6 +129,8 @@ final class TcaLoadedEvent
             $newColumn = $originalColumn;
             ArrayUtility::mergeRecursiveWithOverrule($newColumn, $additionalConfig);
             $loadedTca['sys_file_reference']['columns'][$columnName] = $newColumn;
+            // The value given on the reference belongs to the metadata, see FileReferenceRequiredFieldsHook.
+            $loadedTca['sys_file_reference']['ctrl']['required_attributes_global'][] = $columnName;
             $loadedTca['sys_file_reference']['palettes'] = $this->addColumnsToPalette($columnName, $fileTypes, $loadedTca['sys_file_reference']['palettes']);
 
         }
