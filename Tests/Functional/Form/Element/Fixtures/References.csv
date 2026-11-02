@@ -1,0 +1,11 @@
+"sys_file_reference",,,,,,
+,"uid","pid","uid_local","uid_foreign","tablenames","fieldname"
+,1,1,1,1,"pages","media"
+,2,1,2,1,"pages","media"
+,3,1,5,1,"pages","media"
+"sys_file",,,,,,,,,
+,"uid","pid","storage","type","identifier","identifier_hash","folder_hash","name","mime_type"
+,5,0,1,2,"/image-with-markup.jpg","0000000000000000000000000000000000000005","0000000000000000000000000000000000000000","image-with-markup.jpg","image/jpeg"
+"sys_file_metadata",,,,,
+,"uid","pid","file","copyright","right_of_use"
+,5,0,5,"<script>alert(1)</script>",2

@@ -1,0 +1,10 @@
+"sys_file_reference",,,,,,,
+,"uid","pid","uid_local","uid_foreign","tablenames","fieldname","hidden"
+,1,1,4,1,"pages","media",0
+,2,1,4,1,"pages","media",0
+"sys_file_metadata",,,,
+,"uid","pid","file","copyright"
+,1,0,1,""
+,2,0,2,"Jane Doe"
+,3,0,3,""
+,4,0,4,"John Doe"

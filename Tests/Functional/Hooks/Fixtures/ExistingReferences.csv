@@ -1,0 +1,4 @@
+"sys_file_reference",,,,,,,,
+,"uid","pid","uid_local","uid_foreign","tablenames","fieldname","hidden","title"
+,1,1,1,1,"pages","media",0,"visible reference to an image without copyright"
+,2,1,2,1,"pages","media",0,"visible reference to an image with copyright"
