@@ -1,0 +1,27 @@
+{
+    "name": "fgtclb/test-required-attributes",
+    "description": "Functional test fixture: registers required metadata columns for file_required_attributes",
+    "type": "typo3-cms-extension",
+    "license": [
+        "GPL-3.0-or-later"
+    ],
+    "require": {
+        "fgtclb/file-required-attributes": "*",
+        "typo3/cms-core": "^13.4.19 || ^14.3",
+        "typo3/cms-filemetadata": "^13.4.19 || ^14.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "FGTCLB\\TestRequiredAttributes\\": "Classes/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "test_required_attributes",
+            "version": "1.0.0",
+            "Package": {
+                "providesPackages": {}
+            }
+        }
+    }
+}
