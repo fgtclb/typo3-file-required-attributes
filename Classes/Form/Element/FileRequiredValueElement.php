@@ -49,13 +49,18 @@ final class FileRequiredValueElement extends AbstractFormElement
         $originalFieldConfig = $GLOBALS['TCA']['sys_file_metadata']['columns'][$originalField] ??= [];
 
         // get the value from the original field
-        $value = $metaData[$originalField] ?? '[empty]';
+        $value = $metaData[$originalField] ?? '';
 
         // if radio, select, check, get value from language
         if (in_array($originalFieldConfig['config']['type'] ?? '', RequiredColumnsUtility::$overrideMethodNeeded)
             && method_exists(self::class, $originalFieldConfig['config']['type'])) {
 
             $value = $this->{$originalFieldConfig['config']['type']}($value, $originalFieldConfig);
+        }
+
+        $value = trim((string)$value);
+        if ($value === '') {
+            $value = '[empty]';
         }
 
         $html = [];

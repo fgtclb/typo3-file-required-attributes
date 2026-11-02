@@ -44,6 +44,8 @@ final class FileReferenceRequiredFieldsHook
             'sys_file_metadata' => [],
         ];
         $requiredColumnsMatrix = RequiredColumnsUtility::getRequiredColumnsFromTCA();
+        // One metadata record per file, even if several new references to it give a value.
+        $newMetadataUids = [];
 
         foreach ($dataHandler->datamap['sys_file_reference'] as $id => $reference) {
             $fileId = null;
@@ -100,32 +102,41 @@ final class FileReferenceRequiredFieldsHook
 
             $sysFileMetaData = $this->detectSysFileMetadataRecord($fileId);
             if ($sysFileMetaData === null) {
+                $newMetadataUids[$fileId] ??= StringUtility::getUniqueId('NEW');
                 $sysFileMetaData = [
                     'file' => $fileId,
-                    'uid' => StringUtility::getUniqueId('NEW'),
-                    'copyright' => '',
+                    'uid' => $newMetadataUids[$fileId],
                 ];
             }
+            // Values another reference of this datamap gives for the file count as well.
+            $sysFileMetaData = array_merge(
+                $sysFileMetaData,
+                $data['sys_file_metadata'][(string)$sysFileMetaData['uid']] ?? []
+            );
             $missingColumns = [];
             foreach ($requiredColumns as $requiredColumn) {
                 if ($this->isFieldPartOfReference($requiredColumn)) {
-                    // check and update ref
-                    if (
-                        !isset($originalReference[$requiredColumn])
-                        && !isset($reference[$requiredColumn])
-                        && !isset($sysFileMetaData[$requiredColumn])
-                    ) {
+                    // A reference value of null means "use the value of the metadata".
+                    $value = array_key_exists($requiredColumn, $reference)
+                        ? $reference[$requiredColumn]
+                        : ($originalReference[$requiredColumn] ?? null);
+                    if (RequiredColumnsUtility::isValueMissing($requiredColumn, $value ?? $sysFileMetaData[$requiredColumn] ?? null)) {
                         $missingColumns[] = $requiredColumn;
                     }
                 } else {
-                    // check and update metadata
-                    if (
-                        !isset($sysFileMetaData[$requiredColumn])
-                        && !isset($reference[$requiredColumn])
-                    ) {
+                    $value = $sysFileMetaData[$requiredColumn] ?? null;
+                    if (isset($reference[$requiredColumn])) {
+                        $value = $reference[$requiredColumn];
+                        $metadataUid = (string)$sysFileMetaData['uid'];
+                        $data['sys_file_metadata'][$metadataUid][$requiredColumn] = $value;
+                        // A metadata record created here needs to know its file.
+                        if (!MathUtility::canBeInterpretedAsInteger($metadataUid)) {
+                            $data['sys_file_metadata'][$metadataUid]['pid'] = 0;
+                            $data['sys_file_metadata'][$metadataUid]['file'] = $fileId;
+                        }
+                    }
+                    if (RequiredColumnsUtility::isValueMissing($requiredColumn, $value)) {
                         $missingColumns[] = $requiredColumn;
-                    } elseif (isset($reference[$requiredColumn])) {
-                        $data['sys_file_metadata'][$sysFileMetaData['uid']][$requiredColumn] = $reference[$requiredColumn];
                     }
                     // force unsetting virtual field
                     // isset would not match
