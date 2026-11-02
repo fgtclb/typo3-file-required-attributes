@@ -12,18 +12,21 @@ name: tests core 13
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   code-quality:
     name: "code quality with core v13"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
-        php-version: [ '8.2']
+        php-version: [ '8.2' ]
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: "Prepare dependencies for TYPO3 v13"
         run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s composerUpdate"
@@ -40,5 +43,30 @@ jobs:
       - name: "Find duplicate exception codes"
         run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s checkExceptionCodes"
 
+      - name: "Check XLIFF integrity"
+        run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s checkIntegrityXliff"
+
+      - name: "Check test method prefix"
+        run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s checkTestMethodsPrefix"
+
       - name: "Run PHPStan"
         run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s phpstan"
+
+  testsuite:
+    name: "tests with core v13, PHP ${{ matrix.php-version }}, ${{ matrix.dbms }}"
+    runs-on: ubuntu-26.04
+    needs: code-quality
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '8.2', '8.4' ]
+        dbms: [ 'sqlite', 'mariadb', 'mysql', 'postgres' ]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+
+      - name: "Prepare dependencies for TYPO3 v13"
+        run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -s composerUpdate"
+
+      - name: "Functional tests"
+        run: "Build/Scripts/runTests.sh -b docker -t 13 -p ${{ matrix.php-version }} -d ${{ matrix.dbms }} -s functional"
