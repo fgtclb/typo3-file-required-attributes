@@ -100,6 +100,74 @@ The full declarations are also included in this repository:
 [English](EU-Declaration-of-Conformity.md) ·
 [Deutsch](EU-Konformitaetserklaerung.md).
 
+## Create a release (maintainers only)
+
+Prerequisites:
+
+* git binary
+* ssh key allowed to push new branches to the repository
+* GitHub command line tool `gh` installed and configured with user having permission to create pull requests.
+* [`tailor`](https://github.com/TYPO3/tailor) and `composer` installed globally
+
+**Create release**
+
+> Set `RELEASE_BRANCH` to branch release should happen, for example: 'main'.
+> Set `RELEASE_VERSION` to release version working on, for example: '3.0.0'.
+> Set `DEV_VERSION` to the version following the release, for example: '3.0.1'.
+
+> [!IMPORTANT]
+> Requires `GitHub cli tool` with personal token and
+> maintainer permission on the extension repository.
+
+```bash
+echo '>> Create release' ; \
+  RELEASE_BRANCH='main' ; \
+  RELEASE_VERSION='3.0.0' ; \
+  DEV_VERSION='3.0.1' ; \
+  echo ">> Checkout branches" && \
+  git checkout ${RELEASE_BRANCH} && \
+  git fetch --all && \
+  git pull --rebase && \
+  echo ">> Create release ${RELEASE_VERSION}" && \
+  git checkout -b release-${RELEASE_VERSION} && \
+  sed -i "s/^COMPOSER_ROOT_VERSION.*/COMPOSER_ROOT_VERSION=\"${RELEASE_VERSION}\"/" Build/Scripts/runTests.sh && \
+  sed -i "s/^  RELEASE_VERSION.*/  RELEASE_VERSION='${RELEASE_VERSION}' ; \\\\/" README.md && \
+  sed -i "s/^  DEV_VERSION.*/  DEV_VERSION='${DEV_VERSION}' ; \\\\/" README.md && \
+  tailor set-version ${RELEASE_VERSION} && \
+  composer config "extra"."typo3/cms"."version" "${RELEASE_VERSION}" && \
+  echo "${RELEASE_VERSION}" > VERSION && \
+  git add . && \
+  git commit -m "[RELEASE] ${RELEASE_VERSION}" && \
+  git push --set-upstream origin release-${RELEASE_VERSION} && \
+  gh pr create --fill --base ${RELEASE_BRANCH} --title "[RELEASE] ${RELEASE_VERSION}" && \
+  sleep 10 && \
+  gh pr checks --watch --interval 2 && \
+  sleep 10 && \
+  gh pr merge -rd --admin && \
+  git remote prune origin && \
+  git tag ${RELEASE_VERSION} -m "${RELEASE_VERSION}" && \
+  git push origin ${RELEASE_VERSION} && \
+  echo ">> Post-release - set dev version: ${DEV_VERSION}-dev" && \
+  git checkout -b set-dev-version-${DEV_VERSION} && \
+  sed -i "s/^COMPOSER_ROOT_VERSION.*/COMPOSER_ROOT_VERSION=\"${DEV_VERSION}-dev\"/" Build/Scripts/runTests.sh && \
+  tailor set-version ${DEV_VERSION} && \
+  composer config "extra"."typo3/cms"."version" "${DEV_VERSION}-dev" && \
+  echo "${DEV_VERSION}-dev" > VERSION && \
+  git add . && \
+  git commit -m "[TASK] Set dev version ${DEV_VERSION}" && \
+  git push --set-upstream origin set-dev-version-${DEV_VERSION} && \
+  gh pr create --fill --base ${RELEASE_BRANCH} --title "[TASK] Set dev version \"${DEV_VERSION}-dev\"" && \
+  sleep 10 && \
+  gh pr checks --watch --interval 2 && \
+  sleep 10 && \
+  gh pr merge -rd --admin && \
+  git remote prune origin
+```
+
+Pushing the tag triggers the `on push tags` workflow (`publish.yml`), which creates the upload package and the
+GitHub release with the package attached. The upload to the TYPO3 Extension Repository is not part of it and has
+to be done by the owner of the extension key.
+
 ## License
 
 This extension is released under the [GPL-3.0-or-later](LICENSE) license.
