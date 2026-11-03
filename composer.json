@@ -37,7 +37,7 @@
             "ignore-as-root": false,
             "web-dir": ".Build/Web",
             "app-dir": ".Build",
-            "version": "3.0.0",
+            "version": "3.0.1-dev",
             "Package": {
                 "providesPackages": []
             }
